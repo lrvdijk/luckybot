@@ -1,0 +1,6 @@
+syntax: glob
+main.db
+*.pyc
+*~
+geany_run_script.sh
+.svn
