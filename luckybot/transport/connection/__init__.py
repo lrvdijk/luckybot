@@ -1,5 +1,5 @@
 #
-# LuckyBot5, a multiprotocol, extendable python IM bot.
+# LuckyBot5, a highly extendable IRC bot written in python
 # (c) Copyright 2008 by Lucas van Dijk
 # http://www.return1.net
 #
@@ -20,8 +20,8 @@
 # $Id$ 
 #
 
+from abc import ABCMeta, abstractmethod
 import socket
-import select
 
 from errno import EALREADY, EINPROGRESS, EWOULDBLOCK, ECONNRESET, \
 	 ENOTCONN, ESHUTDOWN, EINTR, EISCONN, errorcode
@@ -30,31 +30,28 @@ class BaseConnection(object):
 	"""
 		Represents a connection to some host
 	"""
+	
+	__metaclass__ = ABCMeta
 
-	def __init__(self, family, type, protocol = None):
+	def __init__(self, family, type):
 		self._family = family
 		self._type = type
-
-		if protocol != None:
-			self.set_protocol(protocol)
-		else:
-			self.protocol = None
-
-	def set_protocol(self, protocol):
-		self.protocol = protocol
-		self.protocol.set_connection(self)
-
+	
+	@abstractmethod
 	def open(self, addr):
-		raise NotImplementedError
-
+		pass
+	
+	@abstractmethod	
 	def close(self):
-		raise NotImplementedError
-
+		pass
+	
+	@abstractmethod
 	def send(self, data):
-		raise NotImplementedError
-
+		pass
+	
+	@absractmethod
 	def recv(self, length):
-		raise NotImplementedError
+		pass
 
 class Connection(BaseConnection):
 	"""
@@ -128,7 +125,7 @@ class Connection(BaseConnection):
 			@param data: The data to send
 		"""
 
-		self._socket.send(data)
+		return self._socket.send(data)
 
 	@property
 	def socket(self):
@@ -150,153 +147,4 @@ class Connection(BaseConnection):
 			return getattr(self._socket, name)
 		else:
 			raise AttributeError, 'Undefined attribute %s' % name
-
-
-class AsyncConnection(Connection):
-	"""
-		Class for multiple asynchrous connections
-		Inspired by asyncore
-
-		Haven't really tested this class yet
-	"""
-
-	def open(self, addr):
-		super(AsyncConnection, self).open(addr)
-
-		self.register_socket()
-
-	def close(self):
-		self.remove_socket()
-
-		super(AsyncConnection, self).close()
-
-	def register_socket(self):
-		"""
-			Adds this socket to the socket_map
-		"""
-
-		if not hasattr(AsyncConnection, 'socket_map') or AsyncConnection.socket_map == None:
-			AsyncConnection.socket_map = {}
-
-		AsyncConnection.socket_map[self._fileno] = self
-
-	def remove_socket(self):
-		"""
-			Removes socket from the socket map
-		"""
-
-		if not hasattr(AsyncConnection, 'socket_map') or AsyncConnection.socket_map == None:
-			AsyncConnection.socket_map = {}
-
-		try:
-			del AsyncConnection.socket_map[self._fileno]
-		except:
-			pass
-
-	@classmethod
-	def poll(self, timeout=0.0):
-		"""
-			Checks all sockets in socket_map and calls the event handlers
-			if there's one
-		"""
-
-		if timeout is not None:
-			# timeout is in milliseconds
-			timeout = int(timeout*1000)
-
-		pollster = select.poll()
-		if hasattr(AsyncConnection, 'socket_map') and AsyncConnection.socket_map:
-			for fd, obj in AsyncConnection.socket_map.items():
-				flags = 0
-				if obj.readable():
-					flags |= select.POLLIN | select.POLLPRI
-				if obj.protocol.writable():
-					flags |= select.POLLOUT
-				if flags:
-					# Only check for exceptions if object was either readable
-					# or writable.
-					flags |= select.POLLERR | select.POLLHUP | select.POLLNVAL
-					pollster.register(fd, flags)
-			try:
-				r = pollster.poll(timeout)
-			except select.error, err:
-				if err[0] != EINTR:
-					raise
-				r = []
-			for fd, flags in r:
-				obj = AsyncConnection.socket_map.get(fd)
-				if obj is None:
-					continue
-
-				if flags & (select.POLLIN | select.POLLPRI):
-					obj.handle_read_event()
-				if flags & select.POLLOUT:
-					obj.handle_write_event()
-
-	def handle_read_event(self):
-		"""
-			This checks if the current instance has an event handler
-			for a read event and calls it if it exists
-		"""
-
-		if not self.connected:
-			self.connected = True
-			self.handle_connect_event()
-
-		if hasattr(self.protocol, 'handle_read'):
-			self.protocol.handle_read()
-
-	def handle_write_event(self):
-		"""
-			This checks if the current instance has an event handler
-			for a write/out event and calls it if it exists
-		"""
-
-		if not self.connected:
-			self.connected = True
-			self.handle_connect_event()
-
-		if hasattr(self.protocol, 'handle_write'):
-			self.protocol.handle_write()
-
-	def handle_connect_event(self):
-		"""
-			This checks if the current instance has an event handler
-			for a connect event and calls it if it exists
-		"""
-
-		if hasattr(self.protocol, 'handle_connect'):
-			self.protocol.handle_connect()
-
-	def handle_close_event(self):
-		"""
-			This checks if the current instance has an event handler
-			for a close event and calls it if it exists
-		"""
-
-		try:
-			if self.connected:
-				self.iochannel.close()
-		except:
-			pass
-
-		self.connected = False
-
-		if hasattr(self.protocol, 'handle_close'):
-			self.protocol.handle_close()
-
-	def handle_error(self, type, value, traceback):
-		"""
-			Called when an error occurs
-		"""
-
-		if hasattr(self.protocol, 'handle_error'):
-			self.protocol.handle_error(type, value, traceback)
-		else:
-			print 'Socket Error'
-
-			print 'Type:', type
-			print 'Value:', value
-			print 'Traceback:'
-			print traceback
 

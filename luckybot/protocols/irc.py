@@ -1,5 +1,5 @@
 #
-# LuckyBot5, a multiprotocol, extendable python IM bot.
+# LuckyBot5, a highly extendable IRC bot written in python
 # (c) Copyright 2008 by Lucas van Dijk
 # http://www.return1.net
 #
@@ -28,6 +28,26 @@ class Client(LineProtocol):
 		IRC Client, parses incoming data into an Event object
 	"""
 	
+	def __init__(self, username, password, invisible=True)
+		"""
+			Constructor, sets some members
+		"""
+		
+		LineProtocol.__init__(self)
+		
+		self.username = username
+		self.password = password
+		self.invisible = invisible
+	
+	def handle_connect(self):
+		"""
+			Called when a connection is made
+			
+			Sends the USER command to authenticate the bot with the irc
+			server
+		"""
+		
+		self.send('USER
 
 class Parser(object):
 	"""

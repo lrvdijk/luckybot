@@ -1,5 +1,5 @@
 #
-# LuckyBot5, a multiprotocol, extendable python IM bot.
+# LuckyBot5, a highly extendable IRC bot written in python
 # (c) Copyright 2008 by Lucas van Dijk
 # http://www.return1.net
 #

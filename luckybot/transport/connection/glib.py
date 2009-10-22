@@ -1,5 +1,5 @@
 #
-# LuckyBot5, a multiprotocol, extendable python IM bot.
+# LuckyBot5, a highly extendable IRC bot written in python
 # (c) Copyright 2008 by Lucas van Dijk
 # http://www.return1.net
 #
@@ -21,7 +21,7 @@
 #
 
 import gobject
-from luckybot.transport.connection import AsyncConnection
+from luckybot.transport.connection.async import OutgoingPacket, AsyncConnection
 
 class GlibConnection(AsyncConnection):
 	"""
@@ -29,12 +29,12 @@ class GlibConnection(AsyncConnection):
 		using gobject IOChannel to integrate with the main glib loop
 	"""
 
-	def __init__(self, family, type, protocol = None):
+	def __init__(self, family, type):
 		"""
 			Constructor initializes some vars
 		"""
 
-		super(GlibConnection, self).__init__(family, type, protocol)
+		super(GlibConnection, self).__init__(family, type)
 
 		self._io_condition = 0
 		self._watch_id = 0
@@ -85,35 +85,10 @@ class GlibConnection(AsyncConnection):
 
 	def send(self, data):
 		"""
-			Writes data to the socket
-
-			@type data: string
-			@param data: The data to send
+			Send data and add IO_OUT watch
 		"""
-
-		return self.iochannel.write(data.encode('utf-8'))
-
-	def readable(self):
-		"""
-			Called before select, to check if this socket is readable
-			Default is to check the protocol object, but can be changed if necessary
-			by subclasses
-		"""
-
-		return self.protocol.readable()
-
-	def writeable(self):
-		"""
-			Called before select to check if this socket needs to write something
-			this makes sure no unnecessary called will be made
-		"""
-
-		return self.connected and self.protocol.writeable()
-
-	def has_buffer(self):
-		"""
-			Add IO_OUT watch
-		"""
+		
+		super(GlibConnection, self).send(data)
 		self._add_condition(gobject.IO_OUT)
 
 	def _remove_watch(self):
@@ -186,3 +161,16 @@ class GlibConnection(AsyncConnection):
 				self._remove_condition(gobject.IO_OUT)
 
 		return True
+		
+	def handle_write_event(self):
+		"""
+			Sends data through IO channel
+		"""
+		
+		if self.send_queue:
+			item = self.send_queue[0]
+			item.sent(self.iochannel.write(item.read()))
+
+			if item.is_complete():
+				del self.send_queue[0]
+				del item
