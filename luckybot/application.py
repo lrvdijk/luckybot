@@ -17,7 +17,7 @@ from luckybot.ui import UI
 
 class Application(object):
 	"""
-		Main stratego application class
+		Main luckybot application class
 	"""
 
 	def __init__(self):
@@ -29,7 +29,7 @@ class Application(object):
 		self.parser.add_option('-d', '--deamon', dest="deamon", action="store_true",
 			help=_("Create a daemon, instead of running in terminal"),
 			default=False)
-		self.parser.add_option('-u', '--ui', dest="gui",
+		self.parser.add_option('-u', '--ui', dest="ui",
 			help=_("GUI type: currently only console supported"),
 			default="console")
 
