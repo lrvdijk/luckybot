@@ -13,7 +13,8 @@ socket running in its own process.
 
 from multiprocessing import Process, Queue, Value
 from Queue import Empty
-from luckybot.connections import BaseConnection
+from luckybot.connections import BaseConnection, Connection
+import socket
 
 class ConnectionProcess(Process):
 	"""
@@ -57,27 +58,36 @@ class ConnectionProcess(Process):
 		connection = Connection(self.family, self.type)
 		connection.open(self.addr)
 
+		print connection
+		print connection._socket
+
 		while connection.is_alive:
 			if self.check_for_send_queue.value:
-				while True:
-					try:
-						data = self.send_queue.get(False)
-						connection.send(data)
+				try:
+					while True:
+						try:
+							data = self.send_queue.get(False)
+							print data
+							connection.send(data)
 
-						if data.startswith("QUIT"):
-							break 2
-					except Empty:
-						break
+							if data.startswith("QUIT"):
+								raise EOFError
+						except Empty:
+							break
+				except EOFError:
+					break
 
 				self.check_for_send_queue.value = False
 
 			try:
 				data = connection.recv(1024)
-			except socket.error:
+			except socket.error as e:
 				# Connection closed
+				print e
 				break
 
 			if data == "":
+				print "No data"
 				# Connection closed
 				break
 
@@ -99,7 +109,7 @@ class ConnectionProcess(Process):
 
 		if pos != -1:
 			data = self.buffer[0:pos+1]
-			self.recv_queue.append(data)
+			self.recv_queue.put(data)
 
 			self.buffer = self.buffer[pos+1:]
 
@@ -136,7 +146,7 @@ class MultiProcessConnection(BaseConnection):
 		"""
 			Puts data in the send queue
 		"""
-		self.send_queue.append(data)
+		self.send_queue.put(data)
 		self.process.check_for_send_queue.value = True
 
 	def recv(self):

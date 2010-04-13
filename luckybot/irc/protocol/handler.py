@@ -12,8 +12,7 @@ easily extend this class and add extra functionality.
 .. moduleauthor:: Lucas van Dijk <info@return1.net>
 """
 
-from luckybot import bot
-from luckybot.irc.protocol import Protocol, IRCException
+from luckybot.irc.protocol import Message, Protocol, IRCException
 
 class ProtocolHandler(object):
 	"""
@@ -42,10 +41,10 @@ class ProtocolHandler(object):
 			the initial commands for an IRC server
 		"""
 
-		self.server.send("USER %s 1 *:LuckyBot" % self.server.info['nickname'])
+		self.server.send("USER %s 1 * :LuckyBot" % self.server.info['nickname'])
 		self.server.send(self.protocol.set_nick(self.server.info['nickname']))
 
-		if 'password' in self.server.info:
+		if 'password' in self.server.info and self.server.info['password']:
 			self.server.send(self.protocol.send_pm('nickserv', 'identify %s' % self.server.info['password']))
 
 	def on_line(self, message):
@@ -60,6 +59,7 @@ class ProtocolHandler(object):
 		"""
 
 		# Check for PING
+		print "<<<", message.raw
 		if message.raw.startswith("PING"):
 			message.server.send("PONG :%s" % message.raw[6:])
 
@@ -79,8 +79,3 @@ class ProtocolHandler(object):
 			channels = message.server.info['channels'].split(',')
 			for channel in channels:
 				message.server.send(self.protocol.join(channel.strip()))
-
-
-
-
-

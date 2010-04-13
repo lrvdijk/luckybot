@@ -11,6 +11,7 @@ UI which consists of a simple console logger
 """
 
 from luckybot.ui import UI
+from luckybot.ui.termcolor import colored
 
 class ConsoleUI(UI):
 	"""
@@ -18,3 +19,8 @@ class ConsoleUI(UI):
 		stdout
 	"""
 
+	def data_in(self, data):
+		print colored("<<< %s" % data, 'yellow')
+
+	def data_out(self, data):
+		print colored(">>> %s" % data, 'blue')

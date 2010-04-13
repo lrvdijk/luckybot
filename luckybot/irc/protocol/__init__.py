@@ -11,6 +11,8 @@ an abstraction of the IRC protocol.
 .. moduleauthor:: Lucas van Dijk <info@return1.net>
 """
 
+import re
+
 class IRCException(Exception):
 	pass
 
@@ -102,7 +104,7 @@ class Protocol(object):
 				* message (string): The message to send
 		"""
 
-		return "PRIVMSG %s :%s" % (nick, message)
+		return "PRIVMSG %s :%s" % (dest, message)
 
 	def send_notice(self, dest, message):
 		"""
@@ -113,7 +115,7 @@ class Protocol(object):
 				* message (string): The message to send
 		"""
 
-		return "NOTICE %s :%s" % (nick, message)
+		return "NOTICE %s :%s" % (dest, message)
 
 	def send_action(self, dest, message):
 		"""

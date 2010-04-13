@@ -21,6 +21,7 @@ Features
 .. moduleauthor:: Lucas van Dijk <info@return1.net>
 """
 
+__version__ = "5.0alpha"
 from luckybot.path import user_path, base_path
-from luckybot.bot import bot
+from luckybot.controller import bot
 

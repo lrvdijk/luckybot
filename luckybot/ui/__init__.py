@@ -36,3 +36,11 @@ class UI(object):
 				return sub
 
 		return None
+
+	@abstractmethod
+	def data_in(self, data):
+		pass
+
+	@abstractmethod
+	def data_out(self, data):
+		pass

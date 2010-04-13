@@ -40,7 +40,7 @@ class BaseConnection(object):
 	def send(self, data):
 		pass
 
-	@absractmethod
+	@abstractmethod
 	def recv(self, length):
 		pass
 

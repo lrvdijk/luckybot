@@ -11,7 +11,7 @@ data, and, if it's connected, the connection it self.
 .. moduleauthor:: Lucas van Dijk <info@return1.net>
 """
 
-from luckybot.irc.handler import ProtocolHandler
+from luckybot.irc.protocol.handler import ProtocolHandler
 from luckybot.connections.multiprocess import MultiProcessConnection
 import socket
 
@@ -56,7 +56,7 @@ class Server(object):
 			self.info['nickname'] = 'LuckyBot'
 
 
-		self.open((self.info['hostname'], self.info['port']))
+		self.connection.open((self.info['hostname'], self.info['port']))
 		self.handler.start()
 
 	def send(self, line):
