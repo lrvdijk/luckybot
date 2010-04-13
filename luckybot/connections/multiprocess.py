@@ -77,6 +77,10 @@ class ConnectionProcess(Process):
 				# Connection closed
 				break
 
+			if data == "":
+				# Connection closed
+				break
+
 			self.buffer += data
 			self.check_buffer()
 
@@ -135,12 +139,15 @@ class MultiProcessConnection(BaseConnection):
 		self.send_queue.append(data)
 		self.process.check_for_send_queue.value = True
 
-	def recv(self, length):
+	def recv(self):
 		"""
 			Returns the first item from the queue
 		"""
 
-		return self.recv_queue.get()
+		try:
+			return self.recv_queue.get()
+		except Empty:
+			return None
 
 	def close(self):
 		"""

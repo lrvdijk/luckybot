@@ -12,7 +12,7 @@ This is our main bot controller, manages plugins, servers and more
 
 from ConfigParser import SafeConfigParser
 from luckybot import base_path, user_path
-from luckybot.connections.multiprocess import MultiProcessConnection
+from luckybot.irc.protocol.server import Server
 
 class LuckyBot(object):
 	"""
@@ -47,7 +47,9 @@ class LuckyBot(object):
 				config = {}
 				for option in self.settings.options(section):
 					config[option] = self.settings.get(section, option)
-				servers.append(config)
+
+				server = Server(**config)
+				servers.append(server)
 
 		return servers
 
@@ -55,5 +57,44 @@ class LuckyBot(object):
 		"""
 			Creates for each server a subprocess, and runs the bot
 		"""
+
+		servers = self.get_servers()
+
+		# Open connections
+		for server in servers:
+			server.connect()
+
+		num_alive = len(servers)
+
+		# Our main loop
+		while True:
+			try:
+				# Loop through each server and check if there's any data
+				for server in servers:
+					data = server.connection.recv()
+
+					if data:
+						message = server.handler.protocol.parse_line(data)
+
+						# pass it through our protocol handler
+						server.handler.on_line(message)
+
+						# TODO: Pass it through all plugins
+
+					# Check which processes are alive and which are not
+					if not server.connection.is_alive():
+						if self.settings.getboolean('Bot', 'keep_alive'):
+							server.connect()
+						else:
+							num_alive -= 1
+
+				if num_alive == 0:
+					break
+			except KeyboardInterrupt:
+				for server in servers:
+					server.send("QUIT :LuckyBot - http://luckybot.return1.net")
+					server.connection.close()
+
+				break
 
 bot = LuckyBot()
