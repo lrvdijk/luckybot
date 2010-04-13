@@ -12,6 +12,8 @@ data, and, if it's connected, the connection it self.
 """
 
 from luckybot.irc.handler import ProtocolHandler
+from luckybot.connections.multiprocess import MultiProcessConnection
+import socket
 
 class Server(object):
 	"""
@@ -28,8 +30,39 @@ class Server(object):
 				  the ini file
 		"""
 
+		if 'hostname' not in kwargs:
+			raise KeyError, "No hostname specified for the server"
+
 		self.info = kwargs
-		self.connection = None
+		self.connection = MultiProcessConnection(socket.AF_INET, socket.SOCK_STREAM)
+		self.handler = ProtocolHandler(self)
 
 	def connect(self):
-		pass
+		"""
+			Sets up a connection for this server, and connects to it
+		"""
+
+		# Default values
+		if 'port' in self.info:
+			try:
+				self.info['port'] = int(self.info['port'])
+			except:
+				self.info['port'] = 6667
+		else:
+			self.info['port'] = 6667
+
+
+		if not 'nickname' in self.info:
+			self.info['nickname'] = 'LuckyBot'
+
+
+		self.open((self.info['hostname'], self.info['port']))
+		self.handler.start()
+
+	def send(self, line):
+		"""
+			Sends the given line to the IRC server, and automaticly
+			adds a newline (as required).
+		"""
+
+		self.connection.send("%s\n" % line)

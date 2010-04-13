@@ -20,7 +20,7 @@ class ProtocolHandler(object):
 		This class makes sure the right data is sent on the right time
 	"""
 
-	def __init__(self):
+	def __init__(self, server):
 		"""
 			Constructor, creates a protocol object
 
@@ -28,9 +28,25 @@ class ProtocolHandler(object):
 				`def on_command_xxx(message):`
 			where xxx is an IRC reply code, will be automaticly
 			called when such message arrives.
+
+			:Args:
+				* server (:class:`luckybot.irc.protocol.server.Server`): The server object
 		"""
 
 		self.protocol = Protocol()
+		self.server = server
+
+	def start(self):
+		"""
+			Called after a connection is opened, this function sends
+			the initial commands for an IRC server
+		"""
+
+		self.server.send("USER %s 1 *:LuckyBot" % self.server.info['nickname'])
+		self.server.send(self.protocol.set_nick(self.server.info['nickname']))
+
+		if 'password' in self.server.info:
+			self.server.send(self.protocol.send_pm('nickserv', 'identify %s' % self.server.info['password']))
 
 	def on_line(self, message):
 		"""
@@ -45,7 +61,7 @@ class ProtocolHandler(object):
 
 		# Check for PING
 		if message.raw.startswith("PING"):
-			message.connection.send("PONG :%s" % message.raw[6:])
+			message.server.send("PONG :%s" % message.raw[6:])
 
 		if message.type == Message.SERVER_MESSAGE:
 			if hasattr(self, 'on_command_%s' % message.command):
@@ -57,5 +73,14 @@ class ProtocolHandler(object):
 			Called when we successfully authenticated with the server,
 			which means we can join channels
 		"""
+
+		# Join the channels, if given
+		if 'channels' in message.server.info:
+			channels = message.server.info['channels'].split(',')
+			for channel in channels:
+				message.server.send(self.protocol.join(channel.strip()))
+
+
+
 
 
