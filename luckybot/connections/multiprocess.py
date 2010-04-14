@@ -68,7 +68,6 @@ class ConnectionProcess(Process):
 		errors = []
 		readables.append(self.connection._socket)
 
-		print self.check_for_send_queue.value
 		if self.check_for_send_queue.value or writeable:
 			writeables.append(self.connection._socket)
 
@@ -96,8 +95,6 @@ class ConnectionProcess(Process):
 		"""
 			Reads data if there's anything available
 		"""
-
-		print "Try to read data"
 		try:
 			data = self.connection.recv(1024)
 		except socket.error as e:
@@ -118,12 +115,9 @@ class ConnectionProcess(Process):
 			Checks the send queue, and sends all data in it
 		"""
 
-		print "Checking queue"
-
 		while True:
 			try:
 				data = self.send_queue.get(False)
-				print data
 				self.connection.send(data)
 
 				if data.startswith("QUIT"):
