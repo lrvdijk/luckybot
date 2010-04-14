@@ -50,18 +50,14 @@ class ConnectionProcess(Process):
 		self.family = family
 		self.type = type
 		self.addr = addr
-		self.check_for_send_queue = Value('b', False)
+		self.check_for_send_queue = Value('b', True)
 		self.buffer = ""
 
-	def poll(self, writeable, timeout=0.0):
+	def poll(self, writeable, timeout=1.0):
 		"""
 			Checks if our connection is readable or writeable, and if so
 			calls the desired function
 		"""
-
-		if timeout is not None:
-			# timeout is in milliseconds
-			timeout = int(timeout*1000)
 
 		readables = []
 		writeables = []
@@ -95,6 +91,7 @@ class ConnectionProcess(Process):
 		"""
 			Reads data if there's anything available
 		"""
+
 		try:
 			data = self.connection.recv(1024)
 		except socket.error as e:
@@ -103,7 +100,6 @@ class ConnectionProcess(Process):
 			raise EOFError
 
 		if data == "":
-			print "No data"
 			# Connection closed
 			raise EOFError
 
@@ -119,13 +115,13 @@ class ConnectionProcess(Process):
 			try:
 				data = self.send_queue.get(False)
 				self.connection.send(data)
+				print data
 
 				if data.startswith("QUIT"):
 					raise EOFError
 			except Empty:
+				self.check_for_send_queue.value = False
 				break
-
-		self.check_for_send_queue.value = False
 
 	def run(self):
 		"""
@@ -139,7 +135,10 @@ class ConnectionProcess(Process):
 
 		while True:
 			try:
-				self.poll(self.check_for_send_queue.value, 1)
+				self.poll(self.check_for_send_queue.value, 0.05)
+			except KeyboardInterrupt:
+				self.connection.send("QUIT :LuckyBot v5 - http://luckybot.return1.org")
+				break
 			except EOFError:
 				break
 
