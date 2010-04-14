@@ -115,7 +115,6 @@ class ConnectionProcess(Process):
 			try:
 				data = self.send_queue.get(False)
 				self.connection.send(data)
-				print data
 
 				if data.startswith("QUIT"):
 					raise EOFError
@@ -137,7 +136,7 @@ class ConnectionProcess(Process):
 			try:
 				self.poll(self.check_for_send_queue.value, 0.05)
 			except KeyboardInterrupt:
-				self.connection.send("QUIT :LuckyBot v5 - http://luckybot.return1.org")
+				self.connection.send("QUIT LuckyBot v5 - http://luckybot.return1.org")
 				break
 			except EOFError:
 				break
@@ -212,7 +211,7 @@ class MultiProcessConnection(BaseConnection):
 			Sends QUIT command to subprocess
 		"""
 
-		self.send("QUIT :")
+		self.send("QUIT LuckyBot5 - http://luckybot.return1.net")
 
 	@property
 	def is_alive(self):
