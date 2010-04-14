@@ -20,7 +20,7 @@ class Server(object):
 		Represents an IRC server
 	"""
 
-	def __init__(self, *args, **kwargs):
+	def __init__(self, bot, *args, **kwargs):
 		"""
 			Constructor, sets the server info.
 
@@ -36,6 +36,7 @@ class Server(object):
 		self.info = kwargs
 		self.connection = MultiProcessConnection(socket.AF_INET, socket.SOCK_STREAM)
 		self.handler = ProtocolHandler(self)
+		self.bot = bot
 
 	def connect(self):
 		"""
@@ -66,3 +67,4 @@ class Server(object):
 		"""
 
 		self.connection.send("%s\n" % line)
+		self.bot.ui.data_out(line.strip())
