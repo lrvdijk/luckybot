@@ -11,11 +11,8 @@ for a specifick IRC event
 .. moduleauthor:: Lucas van Dijk <info@return1.net>
 """
 
-TYPE_COMMAND = 1
-TYPE_USER_EVENT = 2
-TYPE_SERVER_EVENT = 3
-TYPE_REGEXP_RAW = 4
-TYPE_REGEXP_MESSAGE = 5
+from luckybot.plugin import TYPE_COMMAND, TYPE_USER_EVENT, TYPE_SERVER_EVENT, \
+	TYPE_REGEXP_RAW, TYPE_REGEXP_MESSAGE
 
 def command(command):
 	"""
@@ -27,9 +24,8 @@ def command(command):
 	"""
 
 	def function_modifier(func):
-		func.type = TYPE_COMMAND
+		func.handler_type = TYPE_COMMAND
 		func.command = [command] if type(command) is str else command
-		func.im_class.has_commands = True
 
 		return func
 
@@ -46,9 +42,8 @@ def userevent(event):
 	"""
 
 	def function_modifier(func):
-		func.type = TYPE_USER_EVENT
+		func.handler_type = TYPE_USER_EVENT
 		func.event = [event] if type(event) is str else event
-		func.im_class.has_event = True
 
 		return func
 
@@ -67,9 +62,54 @@ def serverreply(code):
 	"""
 
 	def function_modifier(func):
-		func.type = TYPE_SERVER_EVENT
+		func.handler_type = TYPE_SERVER_EVENT
 		func.event = [code] if type(code) is int else code
-		func.im_class.has_event = True
+
+		return func
+
+	return function_modifier
+
+def regexpraw(pattern, modifiers=0):
+	"""
+		Decorator which makes sure when the given regexp matches
+		an incoming message from the server. The regexp will be matched
+		against the raw line from the server
+
+		.. seealso::
+			Decorator :function:`regexpmessage`
+
+		:Args:
+			* pattern (string): The regexp pattern
+			* modifiers (int): Pattern modifiers, default 0
+	"""
+
+	def function_modifier(func):
+		func.handler_type = TYPE_REGEXP_RAW
+		func.pattern = pattern
+		func.modifiers = modifiers
+
+		return func
+
+	return function_modifier
+
+def regexpmessage(pattern, modifiers=0):
+	"""
+		Decorator which makes sure when the given regexp matches
+		an incoming message from a certain user. The regexp will be matched
+		against the message sent by the user.
+
+		.. seealso::
+			Decorator :function:`regexpmessage`
+
+		:Args:
+			* pattern (string): The regexp pattern
+			* modifiers (int): Pattern modifiers, default 0
+	"""
+
+	def function_modifier(func):
+		func.handler_type = TYPE_REGEXP_MESSAGE
+		func.pattern = pattern
+		func.modifiers = modifiers
 
 		return func
 

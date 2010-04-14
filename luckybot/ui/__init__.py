@@ -31,10 +31,7 @@ class UI(object):
 		"""
 
 		subclasses = UI.__subclasses__()
-		print subclasses
-		print type
 		for sub in subclasses:
-			print sub.__name__.lower()
 			if sub.__name__.lower() == ("%sui" % type).lower():
 				return sub
 

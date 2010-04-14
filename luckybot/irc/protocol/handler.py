@@ -67,10 +67,6 @@ class ProtocolHandler(object):
 				func = getattr(self, 'on_command_%s' % message.command.lower())
 				func(message)
 
-		if message.type == Message.USER_MESSAGE:
-			if message.channel.startswith('#'):
-				message.server.send(message.server.handler.protocol.send_pm(message.channel, message.message))
-
 	def on_command_001(self, message):
 		"""
 			Called when we successfully authenticated with the server,

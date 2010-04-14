@@ -12,9 +12,11 @@ This is our main bot controller, manages plugins, servers and more
 
 from ConfigParser import SafeConfigParser
 from luckybot import base_path, user_path, __version__
+from luckybot.irc.protocol import Message
 from luckybot.irc.protocol.server import Server
 from luckybot.ui import UI
 from luckybot.ui.console import ConsoleUI
+from luckybot.plugin import PluginManager
 import optparse
 import os
 import re
@@ -47,6 +49,10 @@ class LuckyBot(object):
 			self.settings.read(user_path('settings.ini'))
 		else:
 			self.settings.read(base_path('data', 'settings.ini'))
+
+		# Load plugins
+		self.plugins = PluginManager()
+		self.plugins.load_plugins(base_path('plugins'))
 
 	def get_servers(self):
 		"""
@@ -95,10 +101,26 @@ class LuckyBot(object):
 						message = server.handler.protocol.parse_line(data)
 						message.server = server
 
+						# Check if bot command is called
+						if (message.type == Message.USER_MESSAGE and
+									message.command == 'PRIVMSG'):
+							cmd_prefix = self.settings.get('Bot', 'command_prefix')
+
+							# A message sent in PM/Channel
+							if message.message[0:len(cmd_prefix)] == cmd_prefix:
+								space_pos = message.message.find(' ', len(cmd_prefix))
+								if space_pos == -1:
+									space_pos = len(message.message)
+
+								command = message.message[len(cmd_prefix):space_pos]
+								message.bot_command = command
+								message.bot_args = message.message[space_pos+1:]
+
 						# pass it through our protocol handler
 						server.handler.on_line(message)
 
-						# TODO: Pass it through all plugins
+						# Pass it through all plugins
+						self.plugins.check_event(message)
 
 					# Check which processes are alive and which are not
 					if not server.connection.is_alive:
