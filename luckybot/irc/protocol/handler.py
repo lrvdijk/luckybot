@@ -59,15 +59,17 @@ class ProtocolHandler(object):
 		"""
 
 		# Check for PING
-		print "<<<", message.raw
 		if message.raw.startswith("PING"):
 			message.server.send("PONG :%s" % message.raw[6:])
 
 		if message.type == Message.SERVER_MESSAGE:
 			if hasattr(self, 'on_command_%s' % message.command):
-				func = getattr(self, 'on_command_%s' % message.command)
+				func = getattr(self, 'on_command_%s' % message.command.lower())
 				func(message)
 
+		if message.type == Message.USER_MESSAGE:
+			if message.channel.startswith('#'):
+				message.server.send(message.server.handler.protocol.send_pm(message.channel, "blaat"))
 	def on_command_001(self, message):
 		"""
 			Called when we successfully authenticated with the server,

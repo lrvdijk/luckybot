@@ -15,6 +15,10 @@ from multiprocessing import Process, Queue, Value
 from Queue import Empty
 from luckybot.connections import BaseConnection, Connection
 import socket
+import select
+
+from errno import EALREADY, EINPROGRESS, EWOULDBLOCK, ECONNRESET, \
+	 ENOTCONN, ESHUTDOWN, EINTR, EISCONN, errorcode
 
 class ConnectionProcess(Process):
 	"""
@@ -49,50 +53,101 @@ class ConnectionProcess(Process):
 		self.check_for_send_queue = Value('b', False)
 		self.buffer = ""
 
+	def poll(self, writeable, timeout=0.0):
+		"""
+			Checks if our connection is readable or writeable, and if so
+			calls the desired function
+		"""
+
+		if timeout is not None:
+			# timeout is in milliseconds
+			timeout = int(timeout*1000)
+
+		readables = []
+		writeables = []
+		errors = []
+		readables.append(self.connection._socket)
+
+		print self.check_for_send_queue.value
+		if self.check_for_send_queue.value or writeable:
+			writeables.append(self.connection._socket)
+
+		errors.append(self.connection._socket)
+
+		try:
+			readables, writables, errors = select.select(readables, writeables, errors, timeout)
+		except socket.error as e:
+			if e.args[0] == EINTR:
+				return
+
+			raise
+
+		if readables:
+			self.read_data()
+
+		if writeables:
+			self.check_queue()
+
+		if errors:
+			raise EOFError
+
+
+	def read_data(self):
+		"""
+			Reads data if there's anything available
+		"""
+
+		print "Try to read data"
+		try:
+			data = self.connection.recv(1024)
+		except socket.error as e:
+			# Connection closed
+			print e
+			raise EOFError
+
+		if data == "":
+			print "No data"
+			# Connection closed
+			raise EOFError
+
+		self.buffer += data
+		self.check_buffer()
+
+	def check_queue(self):
+		"""
+			Checks the send queue, and sends all data in it
+		"""
+
+		print "Checking queue"
+
+		while True:
+			try:
+				data = self.send_queue.get(False)
+				print data
+				self.connection.send(data)
+
+				if data.startswith("QUIT"):
+					raise EOFError
+			except Empty:
+				break
+
+		self.check_for_send_queue.value = False
+
 	def run(self):
 		"""
 			Runs the process, opens up a connection, and starts sending
 			/receiving
 		"""
 
-		connection = Connection(self.family, self.type)
-		connection.open(self.addr)
+		self.connection = Connection(self.family, self.type)
+		self.connection.open(self.addr)
+		self.connection.setblocking(0)
 
-		print connection
-		print connection._socket
-
-		while connection.is_alive:
-			if self.check_for_send_queue.value:
-				try:
-					while True:
-						try:
-							data = self.send_queue.get(False)
-							print data
-							connection.send(data)
-
-							if data.startswith("QUIT"):
-								raise EOFError
-						except Empty:
-							break
-				except EOFError:
-					break
-
-				self.check_for_send_queue.value = False
-
+		while True:
 			try:
-				data = connection.recv(1024)
-			except socket.error as e:
-				# Connection closed
-				print e
+				self.poll(self.check_for_send_queue.value, 1)
+			except EOFError:
 				break
-
-			if data == "":
-				print "No data"
-				# Connection closed
-				break
-
-			self.buffer += data
-			self.check_buffer()
 
 		try:
 			connection.close()
