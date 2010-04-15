@@ -22,6 +22,7 @@ import os
 import re
 import sys
 from datetime import datetime
+from sqlalchemy import create_engine
 
 class LuckyBot(object):
 	"""
@@ -53,6 +54,9 @@ class LuckyBot(object):
 		# Load plugins
 		self.plugins = PluginManager()
 		self.plugins.load_plugins(base_path('plugins'))
+
+		# Setup database
+		self.db = create_engine(self.settings.get('Bot', 'database'))
 
 	def get_servers(self):
 		"""
