@@ -151,7 +151,6 @@ class BotActions(Plugin):
 							event.user.pm(doc)
 		else:
 			# Send list with plugin names
-
 			buffer = ""
 			for plugin in self.bot.plugins.plugins:
 				plugin_obj = self.bot.plugins.plugins[plugin]

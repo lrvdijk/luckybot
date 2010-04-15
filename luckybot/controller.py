@@ -17,6 +17,7 @@ from luckybot.irc.protocol.server import Server
 from luckybot.ui import UI
 from luckybot.ui.console import ConsoleUI
 from luckybot.plugin import PluginManager
+from datetime import datetime
 import optparse
 import os
 import re
@@ -45,6 +46,7 @@ class LuckyBot(object):
 
 		options, args = self.parser.parse_args(sys.argv)
 		self.ui = UI.get(options.ui)()
+		self.start_time = None
 
 		# Load settings
 		self.settings = SafeConfigParser()
@@ -93,6 +95,8 @@ class LuckyBot(object):
 		"""
 			Creates for each server a subprocess, and runs the bot
 		"""
+
+		self.start_time = datetime.now()
 
 		# Load plugins
 		self.plugins = PluginManager()
