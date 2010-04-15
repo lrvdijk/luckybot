@@ -1,13 +1,13 @@
 """
 :mod:`luckybot` - FLexible IRC Bot
-----------------------------------
+==================================
 
 LuckyBot is a multipurpose IRC Bot, with a LOT of features. It runs each
 socket in a seperate process for performance and stability. Beside that,
 it also features a very flexible plugin sytem, which are easy to create.
 
 Features
-========
+--------
 
 * Multiserver and multichannel
 * Easy and flexible plugin system
@@ -23,5 +23,4 @@ Features
 
 __version__ = "5.0alpha"
 from luckybot.path import user_path, base_path
-from luckybot.controller import bot
 

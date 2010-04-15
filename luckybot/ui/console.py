@@ -1,6 +1,6 @@
 """
 :mod:`luckybot.ui.console` - Console logger UI
-----------------------------------------------
+==============================================
 
 UI which consists of a simple console logger
 

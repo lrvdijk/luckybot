@@ -1,6 +1,6 @@
 """
 :mod:`luckybot.irc.protocol.handler` - IRC Protocol handler
------------------------------------------------------------
+===========================================================
 
 This module provides a basic handler class, this class
 makes sures the right data will be sent on the right time. You can

@@ -1,6 +1,6 @@
 """
 :mod:`luckybot.plugin.decorators` - Plugin Decorators
------------------------------------------------------
+=====================================================
 
 This module provides some decorators used to tag functions as a callback
 for a specifick IRC event

@@ -1,6 +1,6 @@
 """
 :mod:`luckybot.irc.protocol.server` - IRC Server handling
------------------------------------------------------------
+=========================================================
 
 This module provides a class from, which you can access all server
 data, and, if it's connected, the connection it self.

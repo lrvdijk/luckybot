@@ -1,6 +1,6 @@
 """
 :mod:`luckybot.language` - Multi language API
----------------------------------------------
+=============================================
 
 This is our main bot controller, manages plugins, servers and more
 
@@ -23,24 +23,28 @@ class Language(object):
 		all formatting
 	"""
 
-	def __init__(self, language, color):
+	def __init__(self, language, color=None, default_formatting={}):
 		"""
 			Initializes our language object
 
 			:Args:
 				* language (string): Which language to use
 				* color (string): IRC Color to use for the {c} variable
+				* default_formatting (dict): Dictionary which will
+				  be added to the format function when retreiving
+				  a language entry
 
 			.. seealso::
 				IRC Formatting: :class:`luckybot.irc.Format`
 		"""
 
 		self.language = language
-		self.color = color
+		self.color = color if color else 'darkblue'
 		self.parser = SafeConfigParser()
 		self.languages_available = []
+		self.format_vars = default_formatting
 
-	def load_language(self, file, language):
+	def load_language(self, file):
 		"""
 			Loads the language entries in a given file for a given
 			language
@@ -70,14 +74,16 @@ class Language(object):
 			'n': Format.normal()
 		}
 
-		kwargs.update(formatting)
+		format_vars = self.format_vars
+		format_vars.update(kwargs)
+		format_vars.update(formatting)
 
 		if self.parser.has_section(self.language):
 			if self.parser.has_option(self.language, key):
-				return self.parser.get(self.language, key).format(*args, **kwargs)
+				return self.parser.get(self.language, key).format(*args, **format_vars)
 		elif self.parser.has_section('english'):
 			if self.parser.has_option('english', key):
-				return self.parser.get('english', key).format(*args, **kwargs)
+				return self.parser.get('english', key).format(*args, **format_vars)
 
 		return key
 

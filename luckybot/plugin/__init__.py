@@ -1,6 +1,6 @@
 """
 :mod:`luckybot.plugin` - Plugin Managment
------------------------------------------
+=========================================
 
 This module provides the basic class for our plugin system.
 
@@ -47,6 +47,9 @@ class Plugin(object):
 
 		self.PLUGIN_INFO['plugin_dir'] = plugin_dir
 		self.PLUGIN_INFO['dirname'] = dirname
+
+		if not 'version' in self.PLUGIN_INFO:
+			self.PLUGIN_INFO['version'] = ''
 
 	def get_functions_for_type(self, type):
 		"""
@@ -162,7 +165,7 @@ class PluginManager(object):
 		self.disabled = disabled
 		self.plugin_dirs = []
 
-		self.plugins = []
+		self.plugins = {}
 
 		self.commands = []
 		self.user_events = []
@@ -188,7 +191,7 @@ class PluginManager(object):
 		self.server_events.extend(plugin.get_functions_for_type(TYPE_SERVER_EVENT))
 		self.raw_regexps.extend(plugin.get_functions_for_type(TYPE_REGEXP_RAW))
 		self.message_regexps.extend(plugin.get_functions_for_type(TYPE_REGEXP_MESSAGE))
-		self.plugins.append(plugin)
+		self.plugins[name] = plugin
 
 	def load_plugins(self, dir):
 		"""
@@ -212,6 +215,58 @@ class PluginManager(object):
 
 		if dir not in self.plugin_dirs:
 			self.plugin_dirs.append(dir)
+
+	def unload_plugin(self, name):
+		"""
+			Unload a given plugin.
+
+			:Args:
+				* name (string): The name of the plugin to unload.
+				  This can be either the directory name, or the name specified
+				  in the plugin metadata
+		"""
+
+		# try to find the plugin
+		# based on dirname or the plugin name
+		if not name in self.plugins:
+			got_plugin = False
+			for plugin in self.plugins:
+				if name == self.plugins[plugin].PLUGIN_INFO['name']:
+					name = self.plugins[plugin].PLUGIN_INFO['dirname']
+					got_plugin = True
+					break
+
+			if got_plugin == False:
+				name = False
+
+		if name == False:
+			return False
+
+		# Remove all functions
+		functions = self.plugins[name].get_functions_for_type(TYPE_COMMAND)
+		for function in functions:
+			self.commands.remove(function)
+
+		functions = self.plugins[name].get_functions_for_type(TYPE_SERVER_EVENT)
+		for function in functions:
+			self.server_events.remove(function)
+
+		functions = self.plugins[name].get_functions_for_type(TYPE_USER_EVENT)
+		for function in functions:
+			self.user_events.remove(function)
+
+		functions = self.plugins[name].get_functions_for_type(TYPE_REGEXP_MESSAGE)
+		for function in functions:
+			self.message_regexps.remove(function)
+
+		functions = self.plugins[name].get_functions_for_type(TYPE_REGEXP_RAW)
+		for function in functions:
+			self.raw_regexps.remove(function)
+
+		if hasattr(self.plugins[name], 'destroy'):
+			self.plugins[name].destroy()
+
+		del self.plugins[name]
 
 	def get_plugin_class(self, directory, name):
 		"""
@@ -240,7 +295,7 @@ class PluginManager(object):
 		if plugin_cls == None:
 			raise PluginException, "Plugin %s has no base pluginclass defined" % name
 
-		plugin = plugin_cls(dir, name)
+		plugin = plugin_cls(directory, name)
 
 		return plugin
 

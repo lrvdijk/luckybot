@@ -1,6 +1,6 @@
 """
 :mod:`luckybot.irc` - IRC Helper classes
-----------------------------------------
+========================================
 
 This module provides some helper classes for IRC specific things like
 formatting.

@@ -1,6 +1,6 @@
 """
 :mod:`luckybot.connections.multiprocess` - Multiprocess sockets
----------------------------------------------------------------
+===============================================================
 
 This module contains some classes for handling with sockets, with each
 socket running in its own process.

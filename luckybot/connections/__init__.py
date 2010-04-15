@@ -1,6 +1,6 @@
 """
 :mod:`luckybot.connections` - Socket helper classes
----------------------------------------------------
+===================================================
 
 This module contains some basic socket abstaction classes, to make
 sockets more flexible.

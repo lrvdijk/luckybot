@@ -1,6 +1,6 @@
 """
 :mod:`luckybot.bot` - Main controller class
--------------------------------------------
+===========================================
 
 This is our main bot controller, manages plugins, servers and more
 
@@ -29,6 +29,8 @@ class LuckyBot(object):
 		Main application controller
 	"""
 
+	bot = None
+
 	def __init__(self):
 		"""
 			Constructor, initializes some basic bot functionality
@@ -46,17 +48,24 @@ class LuckyBot(object):
 
 		# Load settings
 		self.settings = SafeConfigParser()
-		if os.path.exists(user_path('settings.ini')):
-			self.settings.read(user_path('settings.ini'))
+		if os.path.exists(user_path('settings.conf')):
+			self.settings.read(user_path('settings.conf'))
 		else:
-			self.settings.read(base_path('data', 'settings.ini'))
-
-		# Load plugins
-		self.plugins = PluginManager()
-		self.plugins.load_plugins(base_path('plugins'))
+			self.settings.read(base_path('data', 'settings.conf'))
 
 		# Setup database
 		self.db = create_engine(self.settings.get('Bot', 'database'))
+
+	@classmethod
+	def get_bot(cls):
+		"""
+			Get the bot object
+		"""
+
+		if cls.bot == None:
+			cls.bot = LuckyBot()
+
+		return cls.bot
 
 	def get_servers(self):
 		"""
@@ -84,6 +93,10 @@ class LuckyBot(object):
 		"""
 			Creates for each server a subprocess, and runs the bot
 		"""
+
+		# Load plugins
+		self.plugins = PluginManager()
+		self.plugins.load_plugins(base_path('plugins'))
 
 		servers = self.get_servers()
 
@@ -141,5 +154,3 @@ class LuckyBot(object):
 					break
 			except KeyboardInterrupt:
 				break
-
-bot = LuckyBot()
