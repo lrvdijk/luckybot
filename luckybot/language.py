@@ -80,10 +80,13 @@ class Language(object):
 
 		if self.parser.has_section(self.language):
 			if self.parser.has_option(self.language, key):
-				return self.parser.get(self.language, key).format(*args, **format_vars)
+				return self.parser.get(self.language, key).format(*args, **format_vars).strip()
 		elif self.parser.has_section('english'):
 			if self.parser.has_option('english', key):
-				return self.parser.get('english', key).format(*args, **format_vars)
+				return self.parser.get('english', key).format(*args, **format_vars).strip()
+		else:
+			if self.parser.has_option(self.languages_available[0], key):
+				return self.parser.get(self.languages_available[0], key).format(*args, **format_vars).strip()
 
 		return key
 

@@ -12,16 +12,18 @@ commands, uptime, credits and more.
 from luckybot.controller import LuckyBot
 from luckybot.language import Language
 from luckybot.plugin import Plugin, TYPE_COMMAND
-from luckybot.plugin.decorators import command
+from luckybot.plugin.decorators import command, serverevent
 from luckybot.irc import Format
 import os.path
+from datetime import datetime
+import time
 
-class BotActions(Plugin):
+class BotInfo(Plugin):
 	PLUGIN_INFO = {
 		'name': 'Bot Information',
 		'author': ['Lucas van Dijk'],
 		'version': '0.1',
-		'description': 'Some basic bot actions like join, part etc',
+		'description': 'Some basic bot information like commands, uptime and credits',
 		'website': 'http://www.return1.net'
 	}
 
@@ -37,11 +39,60 @@ class BotActions(Plugin):
 			{'pfx': self.bot.settings.get('Bot', 'command_prefix')}
 		)
 
-		print self.PLUGIN_INFO
-
 		self.language.load_language(os.path.join(self.PLUGIN_INFO['plugin_dir'],
 			self.PLUGIN_INFO['dirname'], 'language.conf'
 		))
+
+	@command('uptime')
+	def uptime(self, event):
+		"""
+			Shows how long the bot is running
+		"""
+
+		# Calculate timediff
+		timediff = datetime.now() - self.bot.start_time
+		diff = {
+			'days': timediff.days,
+			'hours': timediff.seconds / 3600,
+			'minutes': (timediff.seconds % 3600) / 60,
+			'seconds': (timediff.seconds % 3600) % 60
+		}
+
+		event.channel.pm(self.language('uptime', diff=diff))
+
+	@command('lag')
+	def lag(self, event):
+		"""
+			Checks the lag between luckybot and the IRC server
+		"""
+
+		event.message.server.send("PING :LAG{0}".format(time.time()))
+		self.send_to_channel = event.message.channel
+
+	@serverevent('PONG')
+	def lag_response(self, event):
+		"""
+			Calculates the lag
+		"""
+
+		# create a float from the time received
+		time_sent = 0
+		try:
+			time_sent = float(event.message.message[3:])
+		except Exception as e:
+			print e
+			event.message.server.send(event.message.server.handler.protocol.send_pm(
+				self.send_to_channel, self.language('invalid_response')
+			))
+			return
+
+		lag = round(time.time() - time_sent, 5)
+
+		event.message.server.send(event.message.server.handler.protocol.send_pm(
+			self.send_to_channel, self.language('lag', lag=lag)
+		))
+
+		self.send_to_channel = ""
 
 	@command(['help', 'info'])
 	def help(self, event):
@@ -73,7 +124,7 @@ class BotActions(Plugin):
 				got_plugin = False
 
 				for plugin in self.bot.plugins.plugins:
-					if self.bot.plugins.plugins[plugin].PLUGIN_INFO['name'] == name:
+					if self.bot.plugins.plugins[plugin].PLUGIN_INFO['name'].lower() == name.lower():
 						name = self.bot.plugins.plugins[plugin].PLUGIN_INFO['dirname']
 						got_plugin = True
 

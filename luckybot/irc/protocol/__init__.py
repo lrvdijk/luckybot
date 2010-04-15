@@ -89,7 +89,7 @@ class Protocol(object):
 
 				return_obj = Message(Message.USER_MESSAGE, data, message_from, command, params, match2.group(1), match2.group(2), match2.group(3), params[params.find(':')+1:], channel)
 			else:
-				return_obj = Message(Message.SERVER_MESSAGE, data, message_from, command, params)
+				return_obj = Message(Message.SERVER_MESSAGE, data, message_from, command, params, message=params[params.find(':')+1:])
 
 			return return_obj
 		else:

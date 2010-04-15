@@ -16,6 +16,7 @@ import re
 import imp
 import inspect
 from abc import ABCMeta
+from luckybot.irc.protocol import Message
 
 TYPE_COMMAND = 1
 TYPE_USER_EVENT = 2
@@ -313,7 +314,7 @@ class PluginManager(object):
 
 		if self.raw_regexps:
 			# Call plugins which want to perform a regexp on the raw
-			# message first
+			# message
 			for function in self.raw_regexps:
 				# Match the regexp
 				regexp = re.compile(function.pattern, function.modifiers)
@@ -333,14 +334,14 @@ class PluginManager(object):
 			# Server replies
 			if message.type == Message.SERVER_MESSAGE:
 				for function in self.server_events:
-					if message.command in function.events:
+					if message.command in function.event:
 						function(event)
 
 		if self.user_events:
 			# User events
 			if message.type == Message.USER_MESSAGE:
 				for function in self.user_events:
-					if message.command in function.events:
+					if message.command in function.event:
 						function(event)
 
 		if self.message_regexps:

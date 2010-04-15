@@ -49,7 +49,7 @@ def userevent(event):
 
 	return function_modifier
 
-def serverreply(code):
+def serverevent(code):
 	"""
 		Decorator which makes a given function act as a callback
 		for a server reply code.
