@@ -28,7 +28,7 @@ class Authentication(object):
 		self.groups = groups
 		self.users = users
 
-	def is_allowed(hostname, group):
+	def is_allowed(self, hostname, group):
 		"""
 			Checks if a certain user is in a group, or the group
 			given is lower ranked than the group the user is in

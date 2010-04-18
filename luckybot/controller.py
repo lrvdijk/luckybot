@@ -25,6 +25,7 @@ import re
 import sys
 from datetime import datetime
 from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 class LuckyBot(object):
 	"""
@@ -57,7 +58,8 @@ class LuckyBot(object):
 			self.settings.read(base_path('data', 'settings.conf'))
 
 		# Setup database
-		self.db = create_engine(self.settings.get('Bot', 'database'))
+		self.db_engine = create_engine(self.settings.get('Bot', 'database'))
+		self.db_session = sessionmaker(engine=self.db_engine)
 
 		# Setup authentication
 		# Builtin groups
@@ -176,3 +178,6 @@ class LuckyBot(object):
 					break
 			except KeyboardInterrupt:
 				break
+
+		self.db_session.commit()
+		self.db_session.close()
