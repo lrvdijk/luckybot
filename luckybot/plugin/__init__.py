@@ -129,8 +129,9 @@ class Event(object):
 			with user/channel
 		"""
 
-		def __init__(self, message):
+		def __init__(self, message, bot):
 			self.message = message
+			self.bot = bot
 
 		def pm(self, data):
 			self.message.server.send(
@@ -153,8 +154,7 @@ class Event(object):
 			)
 
 		def is_allowed(self, group):
-			bot = LuckyBot.get_bot()
-			return bot.auth.is_allowed(self.message.hostname, group)
+			return self.bot.auth.is_allowed(self.message.hostname, group)
 
 		@property
 		def nick(self):
@@ -167,16 +167,15 @@ class Event(object):
 		def __str__(self):
 			return self.message.nick
 
-	def __init__(self, message):
+	def __init__(self, message, bot):
 		"""
 			Constructor, creates our members
 		"""
-
 		self.message = message
 
 		# Create some dummy objects for a nice api to say things
 		self.user = Event.User(message)
-		self.channel = Event.Channel(message)
+		self.channel = Event.Channel(message, bot)
 
 class PluginManager(object):
 	"""

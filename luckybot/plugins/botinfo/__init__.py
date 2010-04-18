@@ -150,7 +150,8 @@ class BotInfo(Plugin):
 					for i, part in enumerate(doc_parts):
 						if i % 2:
 							desc += "{c}"
-						part = part.replace("\n", " ")
+
+						part = " ".join([line.strip() for line in part.split("\n")])
 						desc += part.strip()
 
 						if i % 2:
