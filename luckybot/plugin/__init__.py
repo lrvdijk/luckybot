@@ -17,7 +17,6 @@ import imp
 import inspect
 from abc import ABCMeta
 from luckybot.irc.protocol import Message
-from luckybot.controller import LuckyBot
 from luckybot.language import Language
 
 TYPE_COMMAND = 1
@@ -36,7 +35,7 @@ class Plugin(object):
 
 	__metaclass__ = ABCMeta
 
-	def __init__(self, plugin_dir, dirname):
+	def __init__(self, bot, plugin_dir, dirname):
 		"""
 			Initializes some basic plugin info
 
@@ -54,7 +53,7 @@ class Plugin(object):
 		if not 'version' in self.PLUGIN_INFO:
 			self.PLUGIN_INFO['version'] = ''
 
-		self.bot = LuckyBot.get_bot()
+		self.bot = bot
 
 		if os.path.exists(os.path.join(plugin_dir, dirname, 'language.conf')):
 			self.language = Language(self.bot.settings.get('Bot', 'language'),
@@ -184,11 +183,12 @@ class PluginManager(object):
 		This class handles plugin (re)loading
 	"""
 
-	def __init__(self, disabled=[]):
+	def __init__(self, bot, disabled=[]):
 		"""
 			Constructor, initializes some members
 		"""
 
+		self.bot = bot
 		self.disabled = disabled
 		self.plugin_dirs = []
 
@@ -322,7 +322,7 @@ class PluginManager(object):
 		if plugin_cls == None:
 			raise PluginException, "Plugin %s has no base pluginclass defined" % name
 
-		plugin = plugin_cls(directory, name)
+		plugin = plugin_cls(self.bot, directory, name)
 
 		return plugin
 

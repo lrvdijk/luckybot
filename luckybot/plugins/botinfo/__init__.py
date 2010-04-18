@@ -143,7 +143,7 @@ class BotInfo(Plugin):
 
 				for function in functions:
 					# Get some information from the docstring
-					doc_parts = function.__doc__.replace("!", self.bot.settings.get('Bot', 'command_prefix').split("\n\n")
+					doc_parts = function.__doc__.replace("!", self.bot.settings.get('Bot', 'command_prefix')).split("\n\n")
 					command_doc = "{c}{pfx}{command}{n} - {desc}"
 
 					desc = ""

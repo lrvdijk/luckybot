@@ -68,10 +68,10 @@ class LuckyBot(object):
 		}
 		users = {}
 
-		for option in self.settins.options('Groups'):
+		for option in self.settings.options('Groups'):
 			groups[option] = self.settings.getint('Groups', option)
 
-		for option in self.settins.options('Admins'):
+		for option in self.settings.options('Admins'):
 			users[option] = self.settings.get('Admins', option)
 
 		self.auth = Authentication(groups, users)
@@ -117,7 +117,7 @@ class LuckyBot(object):
 		self.start_time = datetime.now()
 
 		# Load plugins
-		self.plugins = PluginManager()
+		self.plugins = PluginManager(self)
 		self.plugins.load_plugins(base_path('plugins'))
 
 		servers = self.get_servers()
