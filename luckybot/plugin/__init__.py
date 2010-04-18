@@ -174,8 +174,8 @@ class Event(object):
 		self.message = message
 
 		# Create some dummy objects for a nice api to say things
-		self.user = Event.User(message)
-		self.channel = Event.Channel(message, bot)
+		self.user = Event.User(message, bot)
+		self.channel = Event.Channel(message)
 
 class PluginManager(object):
 	"""
