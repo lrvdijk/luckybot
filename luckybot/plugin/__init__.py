@@ -335,7 +335,7 @@ class PluginManager(object):
 		"""
 
 		# Create new event objevt
-		event = Event(message)
+		event = Event(message, self.bot)
 
 		if self.raw_regexps:
 			# Call plugins which want to perform a regexp on the raw
