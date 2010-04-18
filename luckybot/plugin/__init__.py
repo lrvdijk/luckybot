@@ -17,6 +17,8 @@ import imp
 import inspect
 from abc import ABCMeta
 from luckybot.irc.protocol import Message
+from luckybot.controller import LuckyBot
+from luckybot.language import Language
 
 TYPE_COMMAND = 1
 TYPE_USER_EVENT = 2
@@ -51,6 +53,18 @@ class Plugin(object):
 
 		if not 'version' in self.PLUGIN_INFO:
 			self.PLUGIN_INFO['version'] = ''
+
+		self.bot = LuckyBot.get_bot()
+
+		if os.path.exists(os.path.join(plugin_dir, dirname, 'language.conf')):
+			self.language = Language(self.bot.settings.get('Bot', 'language'),
+				self.bot.settings.get('Bot', 'default_color'),
+				{'pfx': self.bot.settings.get('Bot', 'command_prefix')}
+			)
+
+			self.language.load_language(os.path.join(self.PLUGIN_INFO['plugin_dir'],
+				self.PLUGIN_INFO['dirname'], 'language.conf'
+			))
 
 	def get_functions_for_type(self, type):
 		"""
@@ -138,6 +152,18 @@ class Event(object):
 			self.message.server.send(
 				self.message.server.handler.protocol.kick(self.message.nick)
 			)
+
+		def is_allowed(self, group):
+			bot = LuckyBot.get_bot()
+			return bot.auth.is_allowed(self.message.hostname, group)
+
+		@property
+		def nick(self):
+			return self.message.nick
+
+		@property
+		def hostname(self):
+			return self.message.hostname
 
 		def __str__(self):
 			return self.message.nick

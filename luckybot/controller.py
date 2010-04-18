@@ -17,6 +17,7 @@ from luckybot.irc.protocol.server import Server
 from luckybot.ui import UI
 from luckybot.ui.console import ConsoleUI
 from luckybot.plugin import PluginManager
+from luckybot.auth import Authentication
 from datetime import datetime
 import optparse
 import os
@@ -57,6 +58,23 @@ class LuckyBot(object):
 
 		# Setup database
 		self.db = create_engine(self.settings.get('Bot', 'database'))
+
+		# Setup authentication
+		# Builtin groups
+		groups = {
+			'head_admin': 1,
+			'admin': 2,
+			'moderator': 3
+		}
+		users = {}
+
+		for option in self.settins.options('Groups'):
+			groups[option] = self.settings.getint('Groups', option)
+
+		for option in self.settins.options('Admins'):
+			users[option] = self.settings.get('Admins', option)
+
+		self.auth = Authentication(groups, users)
 
 	@classmethod
 	def get_bot(cls):

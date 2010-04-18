@@ -9,8 +9,6 @@ commands, uptime, credits and more.
 .. moduleauthor:: Lucas van Dijk <info@return1.net>
 """
 
-from luckybot.controller import LuckyBot
-from luckybot.language import Language
 from luckybot.plugin import Plugin, TYPE_COMMAND
 from luckybot.plugin.decorators import command, serverevent
 from luckybot.irc import Format
@@ -26,22 +24,6 @@ class BotInfo(Plugin):
 		'description': 'Some basic bot information like commands, uptime and credits',
 		'website': 'http://www.return1.net'
 	}
-
-	def initialize(self):
-		"""
-			Loads our language
-		"""
-
-		self.bot = LuckyBot.get_bot()
-
-		self.language = Language(self.bot.settings.get('Bot', 'language'),
-			self.bot.settings.get('Bot', 'default_color'),
-			{'pfx': self.bot.settings.get('Bot', 'command_prefix')}
-		)
-
-		self.language.load_language(os.path.join(self.PLUGIN_INFO['plugin_dir'],
-			self.PLUGIN_INFO['dirname'], 'language.conf'
-		))
 
 	@command('uptime')
 	def uptime(self, event):
@@ -72,7 +54,8 @@ class BotInfo(Plugin):
 	@serverevent('PONG')
 	def lag_response(self, event):
 		"""
-			Calculates the lag
+			Calculates the lag, when PONG reply from the server has been
+			received.
 		"""
 
 		# create a float from the time received
@@ -160,7 +143,7 @@ class BotInfo(Plugin):
 
 				for function in functions:
 					# Get some information from the docstring
-					doc_parts = function.__doc__.split("\n\n")
+					doc_parts = function.__doc__.replace("!", self.bot.settings.get('Bot', 'command_prefix').split("\n\n")
 					command_doc = "{c}{pfx}{command}{n} - {desc}"
 
 					desc = ""
