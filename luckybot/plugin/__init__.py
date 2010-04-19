@@ -18,6 +18,7 @@ import inspect
 from abc import ABCMeta
 from luckybot.irc.protocol import Message
 from luckybot.language import Language
+import gc
 
 TYPE_COMMAND = 1
 TYPE_USER_EVENT = 2
@@ -293,6 +294,8 @@ class PluginManager(object):
 			self.plugins[name].destroy()
 
 		del self.plugins[name]
+
+		gc.collect()
 
 		return True
 

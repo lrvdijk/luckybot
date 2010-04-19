@@ -12,6 +12,7 @@ changing the nickname etc.
 from luckybot.plugin import Plugin
 from luckybot.plugin.decorators import command
 from luckybot.irc import Format
+import gc
 
 class BotActions(Plugin):
 	PLUGIN_INFO = {
