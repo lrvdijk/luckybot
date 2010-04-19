@@ -130,12 +130,12 @@ class BotInfo(Plugin):
 				event.user.pm(plugin_obj.PLUGIN_INFO['description'])
 
 			if 'author' in plugin_obj.PLUGIN_INFO:
-				self.language('created_by', authors=', '.join(plugin_obj.PLUGIN_INFO['author']))
+				authors = self.language('created_by', authors=', '.join(plugin_obj.PLUGIN_INFO['author']))
 
 				if 'website' in plugin_obj.PLUGIN_INFO:
 					authors += ' - %s' % plugin_obj.PLUGIN_INFO['website']
 
-				event.user.send_pm(authors)
+				event.user.pm(authors)
 
 			functions = plugin_obj.get_functions_for_type(TYPE_COMMAND)
 			if functions:

@@ -10,6 +10,7 @@ formatting.
 
 .. moduleauthor:: Lucas van Dijk <info@return1.net>
 """
+import re
 
 class Format(object):
 	"""

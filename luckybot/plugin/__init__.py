@@ -294,19 +294,38 @@ class PluginManager(object):
 
 		del self.plugins[name]
 
+		return True
+
+	def reload_plugin(self, name):
+		"""
+			Reloads a given plugin
+
+			:Args:
+				* name (string): Name of the plugin
+		"""
+
+		if name in self.plugins:
+			plugin_dir = self.plugins[name].PLUGIN_INFO['plugin_dir']
+			self.unload_plugin(name)
+			self.load_plugin(plugin_dir, name)
+
+
 	def get_plugin_class(self, directory, name):
 		"""
 			Loads the plugin class from the given plugin
 		"""
 
-		path = os.path.join(directory, name)
-
-		if not os.path.isdir(path) or not os.path.exists(os.path.join(path, '__init__.py')):
+		if not os.path.exists(os.path.join(directory, name, '__init__.py')):
 			raise PluginException, "Plugin %s does not exist" % name
 
-		sys.path.insert(0, path)
-		module_obj = imp.load_source(name, os.path.join(path,'__init__.py'))
-		sys.path = sys.path[1:]
+		try:
+			(file, pathname, desc) = imp.find_module(name, [directory])
+			module_obj = imp.load_module(name, file, pathname, desc)
+		except ImportError:
+			raise PluginException, "Plugin %s does not exist" % name
+		finally:
+			if file:
+				file.close()
 
 		# Check for the base plugin class, by looping through each class
 		# defined in the module, and checking if it derives from Plugin
@@ -352,7 +371,7 @@ class PluginManager(object):
 			# Check for command plugins
 			if hasattr(message, 'bot_command'):
 				for function in self.commands:
-					if message.bot_command in function.command:
+					if message.bot_command.lower() in function.command:
 						function(event)
 
 		if self.server_events:

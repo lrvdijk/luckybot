@@ -44,7 +44,7 @@ class BotActions(Plugin):
 
 			event.message.server.send(event.message.server.handler.protocol.join(channel))
 
-		if errors:
+		if error:
 			event.user.notice(self.language('invalid_channels'))
 
 	@command(['part', 'leave'])

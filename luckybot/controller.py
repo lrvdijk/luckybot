@@ -59,7 +59,8 @@ class LuckyBot(object):
 
 		# Setup database
 		self.db_engine = create_engine(self.settings.get('Bot', 'database'))
-		self.db_session = sessionmaker(engine=self.db_engine)
+		self.db_engine.connect()
+		self.session_class = sessionmaker(bind=self.db_engine)
 
 		# Setup authentication
 		# Builtin groups
@@ -178,6 +179,3 @@ class LuckyBot(object):
 					break
 			except KeyboardInterrupt:
 				break
-
-		self.db_session.commit()
-		self.db_session.close()
