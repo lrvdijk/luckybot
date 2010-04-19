@@ -9,19 +9,11 @@ which you can call later to read it and display the latest entries.
 .. moduleauthor:: Lucas van Dijk <info@return1.net>
 """
 
-try:
-	from xml.etree import ElementTree
-except ImportError:
-	try:
-		from elementtree import ElementTree
-	except ImportError:
-		raise
-
+from xml.etree import ElementTree
 from luckybot.plugin import Plugin
 from luckybot.plugin.decorators import command
 from luckybot.irc import Format
 from rssreader.db import Feed
-from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm import sessionmaker
 import urllib2 as urllib
 import re
@@ -109,7 +101,7 @@ class Rss(Plugin):
 		'name': 'RSS Reader',
 		'author': ['Lucas van Dijk'],
 		'version': '0.1',
-		'description': 'Reads RSS feed. and shows the latest entries in channel',
+		'description': 'Reads RSS feed, and shows the latest entries in channel',
 		'website': 'http://www.return1.net'
 	}
 
@@ -201,7 +193,7 @@ class Rss(Plugin):
 		event.channel.pm(self.language('available_feeds'))
 		buffer = ""
 		for row in query:
-			buffer += row['name'] + ", "
+			buffer += row.name + ", "
 
 			if len(buffer) > 255:
 				event.channel.pm(buffer[0:-2])

@@ -41,15 +41,12 @@ class Authentication(object):
 		group = group.lower()
 
 		if not hostname in self.users:
-			print 1
 			return False
 
 		if not group in self.groups:
-			print 2
 			return False
 
 		if not self.users[hostname] in self.groups:
-			print 3
 			return False
 
 		user_group = self.groups[self.users[hostname]]
