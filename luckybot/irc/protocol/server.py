@@ -34,7 +34,7 @@ class Server(object):
 			raise KeyError, "No hostname specified for the server"
 
 		self.info = kwargs
-		self.connection = MultiProcessConnection(socket.AF_INET, socket.SOCK_STREAM)
+		self.connection = MultiProcessConnection(socket.SOCK_STREAM)
 		self.handler = ProtocolHandler(self)
 		self.bot = bot
 

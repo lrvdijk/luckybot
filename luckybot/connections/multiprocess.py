@@ -25,7 +25,7 @@ class ConnectionProcess(Process):
 		This is the worker process for a specific connection
 	"""
 
-	def __init__(self, family, type, addr, recv_queue, send_queue):
+	def __init__(self, type, addr, recv_queue, send_queue):
 		"""
 			Initializes the worker
 
@@ -47,7 +47,6 @@ class ConnectionProcess(Process):
 
 		self.recv_queue = recv_queue
 		self.send_queue = send_queue
-		self.family = family
 		self.type = type
 		self.addr = addr
 		self.check_for_send_queue = Value('b', True)
@@ -128,7 +127,7 @@ class ConnectionProcess(Process):
 			/receiving
 		"""
 
-		self.connection = Connection(self.family, self.type)
+		self.connection = Connection(self.type)
 		self.connection.open(self.addr)
 		self.connection.setblocking(0)
 
@@ -168,8 +167,8 @@ class MultiProcessConnection(BaseConnection):
 		This connection will be run in a seperate subprocess
 	"""
 
-	def __init__(self, family, type):
-		BaseConnection.__init__(self, family, type)
+	def __init__(self, type):
+		BaseConnection.__init__(self, type)
 
 		self.recv_queue = Queue()
 		self.send_queue = Queue()
@@ -184,7 +183,7 @@ class MultiProcessConnection(BaseConnection):
 		"""
 		self.addr = addr
 
-		self.process = ConnectionProcess(self.family, self.type, addr,
+		self.process = ConnectionProcess(self.type, addr,
 			self.recv_queue, self.send_queue)
 
 		self.process.start()

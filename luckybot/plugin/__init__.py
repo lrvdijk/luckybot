@@ -325,7 +325,9 @@ class PluginManager(object):
 			(file, pathname, desc) = imp.find_module(name, [directory])
 			module_obj = imp.load_module(name, file, pathname, desc)
 		except ImportError:
-			raise PluginException, "Plugin %s does not exist" % name
+			import traceback
+			traceback.print_exc()
+			raise PluginException, "Could not load plugin %s" % name
 		finally:
 			if file:
 				file.close()

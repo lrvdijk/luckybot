@@ -13,6 +13,7 @@ sockets more flexible.
 
 from abc import ABCMeta, abstractmethod, abstractproperty
 import socket
+import traceback
 
 from errno import EALREADY, EINPROGRESS, EWOULDBLOCK, ECONNRESET, \
 	 ENOTCONN, ESHUTDOWN, EINTR, EISCONN, errorcode
@@ -24,8 +25,7 @@ class BaseConnection(object):
 
 	__metaclass__ = ABCMeta
 
-	def __init__(self, family, type):
-		self.family = family
+	def __init__(self, type):
 		self.type = type
 
 	@abstractmethod
@@ -61,26 +61,34 @@ class Connection(BaseConnection):
 
 	def open(self, addr):
 		"""
-			Opens and creates a new socket object plus an IOChannel
-			object, connecting to the given address
+			Opens and creates a new socket object, connecting to the given address
 
 			:Args:
 				* addr (tuple): A tuple containing the address and port
 		"""
 
-		try:
-			self._socket = socket.socket(self.family, self.type)
-			self._socket.connect(addr)
+		for res in socket.getaddrinfo(addr[0], addr[1], socket.AF_UNSPEC, self.type):
+			af, socktype, proto, canonname, sa = res
+			try:
+				self._socket = socket.socket(af, socktype, proto)
+			except socket.error, msg:
+				self._socket = None
+				traceback.print_exc()
+				continue
+			try:
+				self._socket.connect(sa)
+			except socket.error, msg:
+				self._socket.close()
+				self._socket = None
+				traceback.print_exc()
+				continue
+			break
 
-			self.addr = addr
-			self._fileno = self._socket.fileno()
-		except socket.error, e:
-			if e[0] in [EINPROGRESS, EALREADY, EWOULDBLOCK]:
-				return
-			else:
-				raise socket.error, e
+		if self._socket == None:
+			raise socket.error((-1, "Could not open socket"))
 
 		self.connected = True
+		self._fileno = self._socket.fileno()
 
 	def close(self):
 		"""
