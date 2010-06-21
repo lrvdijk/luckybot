@@ -111,7 +111,6 @@ class GameserverPlugin(Plugin):
 			else:
 				raise GameserverException, self.language('gameserver_syntax')
 
-
 			protocol = None
 			# check if game is supported
 			for game_type, aliasses in self.SUPPORTED_GAMES.iteritems():
