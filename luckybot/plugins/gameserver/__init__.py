@@ -77,7 +77,9 @@ class GameserverPlugin(Plugin):
 	@command('gameserver')
 	def get_gameserver_stats(self, event):
 		"""
-			Called when gameserver command is used
+			Get gameserver statistics
+
+			Usage: !gameserver name or !gameserver game ip:port
 		"""
 
 		try:
@@ -125,7 +127,7 @@ class GameserverPlugin(Plugin):
 			try:
 				server = Gameserver(protocol, (ip, port))
 				server.query('info')
-			except socket.gaierror:
+			except socket.gaierror, socket.error:
 				raise GameserverException, self.language('could_not_connect')
 
 			template = SourceTemplate(server)
@@ -137,39 +139,6 @@ class GameserverPlugin(Plugin):
 			event.user.pm(self.language('something_went_wrong'))
 			import traceback
 			traceback.print_exc()
-
-	@command(['rss', 'feed', 'last'])
-	def read_rss(self, event):
-		"""
-			Displays the last entries of a RSS feed
-
-			Usage: !rss name or !rss url
-		"""
-
-		try:
-			if not event.message.bot_command in ['rss', 'feed', 'last']:
-				url = event.message.bot_command
-			else:
-				url = Format.remove(event.message.bot_args)
-
-			# Check URL
-			if not self.validate_url(url):
-				url = self.get_url(url)
-				if not url:
-					raise RssException, self.language('not_found')
-
-			rss = RssFeed(url)
-
-			if event.message.bot_command == 'last':
-				rss.read(1)
-			else:
-				rss.read(5)
-
-			event.channel.pm(self.language('rss_title', title=rss.title))
-			for item in rss:
-				event.channel.pm(self.language('rss_item', title=item['title'], url=item['link']))
-		except RssException as error:
-			event.channel.pm(error)
 
 	@command('gameservers')
 	def list_feeds(self, event):
