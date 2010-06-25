@@ -39,7 +39,7 @@ class SourceProtocol(Protocol):
 	"""
 
 	QUERY_CHALLENGE = "\xFF\xFF\xFF\xFF\x57"
-	QUERY_INFO = "\xFF\xFF\xFF\xFF\x54Source Engine Query"
+	QUERY_INFO = "\xFF\xFF\xFF\xFF\x54Source Engine Query\x00"
 	QUERY_PLAYERS = "\xFF\xFF\xFF\xFF\x55"
 	QUERY_RULES = "\xFF\xFF\xFF\xFF\x56"
 
