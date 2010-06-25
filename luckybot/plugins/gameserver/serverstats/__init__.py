@@ -72,7 +72,7 @@ class Protocol(object):
 		# Setup connection
 		self.connection = self.connection_class(socket.SOCK_DGRAM)
 		self.connection.open(server.addr)
-		self.connection.settimeout(3)
+		self.connection.settimeout(8)
 
 		self.last_query = ""
 		self.start_protocol()

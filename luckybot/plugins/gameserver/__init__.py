@@ -127,7 +127,7 @@ class GameserverPlugin(Plugin):
 			try:
 				server = Gameserver(protocol, (ip, port))
 				server.query('info')
-			except socket.gaierror, socket.error:
+			except socket.gaierror, socket.error, socket.timeout:
 				raise GameserverException, self.language('could_not_connect')
 
 			template = SourceTemplate(server)

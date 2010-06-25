@@ -143,7 +143,8 @@ class SourceProtocol(Protocol):
 				info['password'] = packet.read_ord()
 				info['secure'] = packet.read_ord()
 				info['gameversion'] = packet.read_string()
-
+				info['extra_data'] = packet.read_byte(use_ord=True)
+				print info['extra_data']
 				self.server.info = info
 			elif query == 'D':
 				# Players response

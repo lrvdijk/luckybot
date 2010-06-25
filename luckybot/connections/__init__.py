@@ -118,10 +118,7 @@ class Connection(BaseConnection):
 			:Returns: The data read
 		"""
 
-		try:
-			data = self._socket.recv(length)
-		except socket.timeout:
-			data = ""
+		data = self._socket.recv(length)
 
 		if data == "":
 			raise socket.error((-1, 'Not connected to host'))
