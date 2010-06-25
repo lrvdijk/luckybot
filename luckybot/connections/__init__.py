@@ -70,7 +70,7 @@ class Connection(BaseConnection):
 		for res in socket.getaddrinfo(addr[0], addr[1], socket.AF_UNSPEC, self.type):
 			af, socktype, proto, canonname, sa = res
 			try:
-				self._socket = socket.socket(af, socktype, proto)
+				self._socket = socket.socket(af, self.type, proto)
 			except socket.error, msg:
 				self._socket = None
 				traceback.print_exc()
