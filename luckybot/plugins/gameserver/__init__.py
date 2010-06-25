@@ -127,13 +127,13 @@ class GameserverPlugin(Plugin):
 			try:
 				server = Gameserver(protocol, (ip, port))
 				server.query('info')
-			except socket.gaierror, socket.error, socket.timeout:
+			except (socket.gaierror, socket.error, socket.timeout):
 				raise GameserverException, self.language('could_not_connect')
 
 			template = SourceTemplate(server)
 			event.channel.pm(self.language('gameserver_template1', **template.get_vars()))
 			event.channel.pm(self.language('gameserver_template2', **template.get_vars()))
-		except GameserverException, e:
+		except GameserverException as e:
 			event.user.notice(str(e))
 		except:
 			event.user.pm(self.language('something_went_wrong'))
