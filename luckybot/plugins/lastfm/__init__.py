@@ -126,7 +126,7 @@ class LastFMInfo(object):
 		while i < 5:
 			track = {
 				'artist': tracks[i].find('artist').text,
-				'title': tracks[i].find('title').text,
+				'title': tracks[i].find('name').text,
 				'playcount': tracks[i].find('playcount').text
 			}
 
