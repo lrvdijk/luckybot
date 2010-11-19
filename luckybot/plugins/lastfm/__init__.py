@@ -72,13 +72,10 @@ class LastFMInfo(object):
 
 		track = elem.find('track')
 
-		if not track or track == None:
+		if not track:
 			return False
 
-		title = track.find('artist').text + " - " + track.find('name').text
-		del elem
-
-		return title;
+		return {'artist': track.find('artist').text, 'title': track.find('name').text}
 
 	def get_top_tracks(self):
 		tree = self._get_xml('http://ws.audioscrobbler.com/1.0/user/%s/toptracks.xml' % self.username)
@@ -88,7 +85,13 @@ class LastFMInfo(object):
 		to_return = []
 		i = 0
 		while i < 5:
-			to_return.append(tracks[i].find('artist').text + " - " + tracks[i].find('name').text + " (" + Format.color('red') + _("Playcount:") + " " + tracks[i].find('playcount').text + Format.normal() + ")")
+			track = {
+				'artist': tracks[i].find('artist').text,
+				'title': tracks[i].find('name').text,
+				'playcount': tracks[i].find('playcount').text
+			}
+
+			to_return.append(track)
 
 			i += 1
 
@@ -102,7 +105,12 @@ class LastFMInfo(object):
 		to_return = []
 		i = 0
 		while i < 5:
-			to_return.append(artists[i].find('name').text + " (" + Format.color('red') + _("Playcount:") + " " + artists[i].find('playcount').text + Format.normal() + ")")
+			track = {
+				'artist': artists[i].find('name').text,
+				'playcount': artists[i].find('playcount').text
+			}
+
+			to_return.append(track)
 
 			i += 1
 
@@ -116,7 +124,13 @@ class LastFMInfo(object):
 		to_return = []
 		i = 0
 		while i < 5:
-			to_return.append(tracks[i].find('artist').text + " - " + tracks[i].find('name').text + " (" + Format.color('red') + _("Playcount:") + " " + tracks[i].find('playcount').text + Format.normal() + ")")
+			track = {
+				'artist': tracks[i].find('artist').text,
+				'title': tracks[i].find('title').text,
+				'playcount': tracks[i].find('playcount').text
+			}
+
+			to_return.append(track)
 
 			i += 1
 
@@ -157,16 +171,18 @@ class LastFMPlugin(Plugin):
 	def send_now_playing(self, user, event):
 		lastfm = LastFMInfo(user)
 		try:
-			title = lastfm.now_playing()
+			track = lastfm.now_playing()
 		except:
 			import traceback
 			traceback.print_exc()
 			event.channel.pm(self.language('user_not_found'))
 		else:
-			if title == False:
+			if not track:
 				event.channel.pm(self.language('no_track_playing'))
 			else:
-				event.channel.pm(self.language('now_playing', user=user, track=title))
+				track.update(user=user)
+				event.channel.pm(self.language('now_playing', **track))
+
 
 		del lastfm
 
@@ -187,7 +203,8 @@ class LastFMPlugin(Plugin):
 
 				i = 1
 				for track in tracks:
-					event.channel.pm(self.language('top_tpl', num=i, item=track)
+					track.update(num=i)
+					event.channel.pm(self.language('top_tracks_tpl', **track))
 					i += 1
 
 	def send_top_artists(self, user, event):
@@ -200,14 +217,15 @@ class LastFMPlugin(Plugin):
 			traceback.print_exc()
 			event.channel.pm(self.language('user_not_found'))
 		else:
-			if len(tracks) == 0:
+			if len(artists) == 0:
 				event.channel.pm(self.language('no_top_artists'))
 			else:
 				event.channel.pm(self.language('top_artists_from', user=user))
 
 				i = 1
 				for artist in artists:
-					event.channel.pm(self.language('top_tpl', num=i, item=artist)
+					artist.update(num=i)
+					event.channel.pm(self.language('top_artists_tpl', **artist))
 					i += 1
 
 	def send_weekly_top(self, user, event):
@@ -227,5 +245,6 @@ class LastFMPlugin(Plugin):
 
 				i = 1
 				for track in tracks:
-					event.channel.pm(self.language('top_tpl', num=i, item=track)
+					track.update(num=i)
+					event.channel.pm(self.language('top_tracks_tpl', **track))
 					i += 1

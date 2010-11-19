@@ -48,7 +48,7 @@ class BotInfo(Plugin):
 			Checks the lag between luckybot and the IRC server
 		"""
 
-		event.message.server.send("PING :LAG{0}".format(time.time()))
+		event.server.send("PING :LAG{0}".format(time.time()))
 		self.send_to_channel = event.message.channel
 
 	@serverevent('PONG')
@@ -64,14 +64,14 @@ class BotInfo(Plugin):
 			time_sent = float(event.message.message[3:])
 		except Exception as e:
 			print e
-			event.message.server.send(event.message.server.handler.protocol.send_pm(
+			event.server.send(event.server.protocol.pm(
 				self.send_to_channel, self.language('invalid_response')
 			))
 			return
 
 		lag = round(time.time() - time_sent, 5)
 
-		event.message.server.send(event.message.server.handler.protocol.send_pm(
+		event.server.send(event.server.protocol.pm(
 			self.send_to_channel, self.language('lag', lag=lag)
 		))
 

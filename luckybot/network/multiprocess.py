@@ -141,7 +141,6 @@ class SocketProcess(Process):
 				self.recv_queue.put("QUIT")
 				break
 
-		print "process end"
 		try:
 			self.connection.close()
 		except:

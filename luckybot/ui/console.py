@@ -34,10 +34,10 @@ class ConsoleUI(UI):
 			server.add_listener('closed', self.on_closed)
 
 	def data_in(self, server, data):
-		print colored("<<< %s" % data, 'yellow')
+		print colored("<<< %s" % data.strip(), 'yellow')
 
 	def data_out(self, server, data):
-		print colored(">>> %s" % data, 'blue')
+		print colored(">>> %s" % data.strip(), 'blue')
 
 	def on_connected(self, server):
 		print colored('[%s] connected' % str(server), 'green')

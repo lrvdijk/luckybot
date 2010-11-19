@@ -36,7 +36,7 @@ class SignalEmitter(object):
 			if not name in self.listeners:
 				self.listeners[name] = []
 
-			self.listeners[name].append((callback, userdata))
+			self.listeners[name].insert(0, (callback, userdata))
 		else:
 			raise SignalException, "Signal name does not exists"
 

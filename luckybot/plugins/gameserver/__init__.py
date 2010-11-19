@@ -69,8 +69,6 @@ class GameserverPlugin(Plugin):
 			Initializer, creates our database table if needed
 		"""
 
-		self.db_session = self.bot.session_class()
-
 		Server.metadata.bind = self.bot.db_engine
 		Server.metadata.create_all()
 
@@ -89,7 +87,7 @@ class GameserverPlugin(Plugin):
 				# preset
 				name = Format.remove(args[0])
 
-				query = self.db_session.query(Server).filter_by(
+				query = self.bot.db_session.query(Server).filter_by(
 					name=name, is_approved=1
 				)
 
@@ -146,7 +144,7 @@ class GameserverPlugin(Plugin):
 			Lists all available gameserver presets
 		"""
 
-		query = self.db_session.query(Server).filter_by(is_approved=True)
+		query = self.bot.db_session.query(Server).filter_by(is_approved=True)
 
 		event.channel.pm(self.language('available_presets'))
 		buffer = ""
@@ -195,7 +193,7 @@ class GameserverPlugin(Plugin):
 			name = args[0]
 
 			# Check if the name is already in use
-			if self.db_session.query(Server).filter_by(name=name).count() > 0:
+			if self.bot.db_session.query(Server).filter_by(name=name).count() > 0:
 				raise GameserverException, self.language('already_exists')
 
 			regexp = re.compile('^[a-zA-Z0-9\-_.]+$')
@@ -203,8 +201,8 @@ class GameserverPlugin(Plugin):
 				raise GameserverException, self.language('invalid_name')
 
 			server = Server(name, game, ip, port, True if event.user.is_allowed('moderator') else False)
-			self.db_session.add(server)
-			self.db_session.commit()
+			self.bot.db_session.add(server)
+			self.bot.db_session.commit()
 
 			event.user.notice(self.language('add_success' if event.user.is_allowed('moderator') else 'needs_review'))
 		except GameserverException as error:
@@ -230,13 +228,13 @@ class GameserverPlugin(Plugin):
 
 		if len(args) == 0:
 			# Display a list of unapproved feeds
-			query = self.db_session.query(Server).filter_by(is_approved=False)
+			query = self.bot.db_session.query(Server).filter_by(is_approved=False)
 
 			event.user.notice(self.language('unapproved_feeds'))
 			for server in query:
 				event.user.notice(self.language('item', server=server))
 		elif len(args) == 2:
-			server = self.db_session.query(Server).filter_by(name=Format.remove(args[0])).first()
+			server = self.bot.db_session.query(Server).filter_by(name=Format.remove(args[0])).first()
 
 			if not server:
 				event.user.notice(self.language('not_found'))
@@ -244,11 +242,11 @@ class GameserverPlugin(Plugin):
 				if args[1] in ['yes', 'ok', 'good']:
 					server.is_approved = True
 
-					self.db_session.commit()
+					self.bot.db_session.commit()
 					event.user.notice(self.language('server_approved'))
 				elif args[1] in ['no', 'wrong', 'delete']:
-					self.db_session.delete(server)
-					self.db_session.commit()
+					self.bot.db_session.delete(server)
+					self.bot.db_session.commit()
 
 					event.user.notice(self.language('server_deleted'))
 				else:

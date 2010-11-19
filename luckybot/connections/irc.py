@@ -62,7 +62,6 @@ class IRCServerConnection(BaseConnection):
 
 		self.connection.open((self.info['hostname'], self.info['port']))
 		self.emit_signal('connected')
-		print "connected"
 
 	def send(self, line):
 		"""
@@ -80,7 +79,6 @@ class IRCServerConnection(BaseConnection):
 		"""
 
 		data = self.connection.recv()
-		print data
 		self.buffer += data
 		self.check_buffer()
 

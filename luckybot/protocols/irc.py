@@ -47,8 +47,6 @@ class IRCProtocol(object):
 			the initial commands for an IRC server
 		"""
 
-		print "Start"
-
 		self.server.send("USER %s 1 * :LuckyBot" % self.server.info['nickname'])
 		self.server.send(self.set_nick(self.server.info['nickname']))
 
@@ -66,7 +64,7 @@ class IRCProtocol(object):
 
 		# Check for PING
 		if message.raw.startswith("PING"):
-			message.server.send("PONG :%s" % message.raw[6:])
+			self.server.send("PONG :%s" % message.raw[6:])
 
 		if message.type == Message.SERVER_MESSAGE:
 			if hasattr(self, 'on_command_%s' % message.command):
@@ -246,6 +244,16 @@ class IRCProtocol(object):
 		"""
 
 		return "KICK %s %s :%s" % (channel, nickname, reason)
+
+	def quit(self, message=""):
+		"""
+			Quits from the IRC server
+
+			:Args:
+				* message (string): Optional quit message
+		"""
+
+		return "QUIT %s" % message
 
 class Format(object):
 	"""

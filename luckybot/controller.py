@@ -73,6 +73,7 @@ class LuckyBot(SignalEmitter):
 		self.db_engine = create_engine(self.settings.get('Bot', 'database'))
 		self.db_engine.connect()
 		self.session_class = sessionmaker(bind=self.db_engine)
+		self.db_session = self.session_class()
 
 		# Setup authentication
 		# Builtin groups

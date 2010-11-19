@@ -110,12 +110,10 @@ class Rss(Plugin):
 			Initializer, creates our database table if needed
 		"""
 
-		self.db_session = self.bot.session_class()
-
 		Feed.metadata.bind = self.bot.db_engine
 		Feed.metadata.create_all()
 
-		query = self.db_session.query(Feed).filter_by(is_approved=True, register_as_command=True)
+		query = self.bot.db_session.query(Feed).filter_by(is_approved=True, register_as_command=True)
 		for feed in query:
 			self.read_rss.command.append(feed.name)
 
@@ -141,7 +139,7 @@ class Rss(Plugin):
 			:Returns:
 				None if the feed isn't found, else the URL
 		"""
-		query = self.db_session.query(Feed).filter_by(
+		query = self.bot.db_session.query(Feed).filter_by(
 			name=name, is_approved=True
 		)
 
@@ -188,7 +186,7 @@ class Rss(Plugin):
 			Lists all available RSS feeds
 		"""
 
-		query = self.db_session.query(Feed).filter_by(is_approved=True)
+		query = self.bot.db_session.query(Feed).filter_by(is_approved=True)
 
 		event.channel.pm(self.language('available_feeds'))
 		buffer = ""
@@ -227,7 +225,7 @@ class Rss(Plugin):
 			name = Format.remove(args[0])
 
 			# Check if the name is already in use
-			if self.db_session.query(Feed).filter_by(name=name).count() > 0:
+			if self.bot.db_session.query(Feed).filter_by(name=name).count() > 0:
 				raise RssException, self.language('name_in_use')
 
 			regexp = re.compile('^[a-zA-Z0-9\-_.]+$')
@@ -235,8 +233,8 @@ class Rss(Plugin):
 				raise RssException, self.language('invalid_name')
 
 			feed = Feed(name, url, True if event.user.is_allowed('moderator') else False)
-			self.db_session.add(feed)
-			self.db_session.commit()
+			self.bot.db_session.add(feed)
+			self.bot.db_session.commit()
 
 			event.user.notice(self.language('feed_added'))
 		except RssException as error:
@@ -264,13 +262,13 @@ class Rss(Plugin):
 
 		if len(args) == 0:
 			# Display a list of unapproved feeds
-			query = self.db_session.query(Feed).filter_by(is_approved=False)
+			query = self.bot.db_session.query(Feed).filter_by(is_approved=False)
 
 			event.user.notice(self.language('unapproved_feeds'))
 			for feed in query:
 				event.user.notice(self.language('review_feed_template', feed=feed))
 		elif len(args) == 2:
-			feed = self.db_session.query(Feed).filter_by(name=Format.remove(args[0])).first()
+			feed = self.bot.db_session.query(Feed).filter_by(name=Format.remove(args[0])).first()
 
 			if not feed:
 				event.user.notice(self.language('not_found'))
@@ -280,15 +278,15 @@ class Rss(Plugin):
 					if args[1] == 'as_command':
 						feed.register_as_command = True
 
-					self.db_session.commit()
+					self.bot.db_session.commit()
 					event.user.notice(self.language('feed_approved'))
 
 					if args[1] == 'as_command':
 						self.bot.plugins.reload_plugin(self.PLUGIN_INFO['dirname'])
 
 				elif args[1] in ['no', 'wrong', 'delete']:
-					self.db_session.delete(feed)
-					self.db_session.commit()
+					self.bot.db_session.delete(feed)
+					self.bot.db_session.commit()
 
 					event.user.notice(self.language('feed_deleted'))
 				else:

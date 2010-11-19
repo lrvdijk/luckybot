@@ -43,7 +43,7 @@ class ProcessManager(object):
 		for server in self.servers:
 			alive = server.connection.is_alive
 
-			if server.connection.is_alive:
+			if alive:
 				data = server.recv()
 
 				if data.startswith("QUIT"):
@@ -54,14 +54,10 @@ class ProcessManager(object):
 			if not alive:
 				if (hasattr(server, 'started') and self.keep_alive) or not hasattr(server, 'started'):
 					# Make sure its really closed, and respawn the process again
-					print "try to create new process"
 					server.connect()
 					server.started = True
-					print "New process", server
 
 					# Asume connection is successfull
 					num_alive += 1
-				elif not self.keep_alive:
-					num_alive -= 1
 
 		return num_alive
