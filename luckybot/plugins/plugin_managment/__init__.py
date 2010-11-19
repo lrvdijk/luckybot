@@ -10,7 +10,7 @@ This plugin provides some commands for on the fly plugin (re)loading.
 
 from luckybot.plugin import Plugin, PluginException
 from luckybot.plugin.decorators import command
-from luckybot.irc import Format
+from luckybot.protocols.irc import Format
 
 class PluginManagment(Plugin):
 	PLUGIN_INFO = {

@@ -1,11 +1,11 @@
 """
-:mod:`luckybot.connections.multiprocess` - Multiprocess sockets
-===============================================================
+:mod:`luckybot.network.multiprocess` - Multiprocess sockets
+===========================================================
 
 This module contains some classes for handling with sockets, with each
 socket running in its own process.
 
-.. module:: luckybot.connections.multiprocess
+.. module:: luckybot.network.multiprocess
    :synopsis: Multiprocess socket helper classes
 
 .. moduleauthor:: Lucas van Dijk <info@return1.net>
@@ -13,14 +13,15 @@ socket running in its own process.
 
 from multiprocessing import Process, Queue, Value
 from Queue import Empty
-from luckybot.connections import BaseConnection, Connection
 import socket
 import select
+
+from luckybot.network.base import BaseSocket, Socket
 
 from errno import EALREADY, EINPROGRESS, EWOULDBLOCK, ECONNRESET, \
 	 ENOTCONN, ESHUTDOWN, EINTR, EISCONN, errorcode
 
-class ConnectionProcess(Process):
+class SocketProcess(Process):
 	"""
 		This is the worker process for a specific connection
 	"""
@@ -42,6 +43,7 @@ class ConnectionProcess(Process):
 
 			.. seealso::
 				Python mod:`socket` module
+				Python mod:`multiprocessing` module
 		"""
 		Process.__init__(self)
 
@@ -102,8 +104,7 @@ class ConnectionProcess(Process):
 			# Connection closed
 			raise EOFError
 
-		self.buffer += data
-		self.check_buffer()
+		self.recv_queue.put(data)
 
 	def check_queue(self):
 		"""
@@ -127,48 +128,34 @@ class ConnectionProcess(Process):
 			/receiving
 		"""
 
-		self.connection = Connection(self.type)
+		self.connection = Socket(self.type)
 		self.connection.open(self.addr)
 		self.connection.setblocking(0)
 
 		while True:
 			try:
-				self.poll(self.check_for_send_queue.value, 0.05)
+				self.poll(self.check_for_send_queue.value, 0.1)
 			except KeyboardInterrupt:
-				self.connection.send("QUIT LuckyBot v5 - http://luckybot.return1.org")
 				break
 			except EOFError:
+				self.recv_queue.put("QUIT")
 				break
 
+		print "process end"
 		try:
-			connection.close()
+			self.connection.close()
 		except:
 			pass
 
-	def check_buffer(self):
-		"""
-			Checks if a newline is in the buffer (which means end of
-			command), and appends it to the recv queue if so
-		"""
+		return 0
 
-		pos = self.buffer.find("\n")
-
-		if pos != -1:
-			data = self.buffer[0:pos+1]
-			self.recv_queue.put(data)
-
-			self.buffer = self.buffer[pos+1:]
-
-			if self.buffer.find("\n") != -1:
-				self.check_buffer()
-
-class MultiProcessConnection(BaseConnection):
+class MultiProcessSocket(BaseSocket):
 	"""
 		This connection will be run in a seperate subprocess
 	"""
 
 	def __init__(self, type):
-		BaseConnection.__init__(self, type)
+		BaseSocket.__init__(self, type)
 
 		self.recv_queue = Queue()
 		self.send_queue = Queue()
@@ -183,7 +170,7 @@ class MultiProcessConnection(BaseConnection):
 		"""
 		self.addr = addr
 
-		self.process = ConnectionProcess(self.type, addr,
+		self.process = SocketProcess(self.type, addr,
 			self.recv_queue, self.send_queue)
 
 		self.process.start()
@@ -210,7 +197,7 @@ class MultiProcessConnection(BaseConnection):
 			Sends QUIT command to subprocess
 		"""
 
-		self.send("QUIT LuckyBot5 - http://luckybot.return1.net")
+		self.send("QUIT")
 
 	@property
 	def is_alive(self):

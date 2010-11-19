@@ -25,7 +25,7 @@
 
 import re
 import socket
-from luckybot.connections import Connection
+from luckybot.network import Socket
 from .protocols import Packet
 
 class GameserverException(Exception):
@@ -60,7 +60,7 @@ class Protocol(object):
 		The base protocol all other game protocols should derive from
 	"""
 
-	connection_class = Connection
+	connection_class = Socket
 
 	def __init__(self, server):
 		"""

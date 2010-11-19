@@ -12,7 +12,7 @@ outputs it to the channel.
 from xml.etree import ElementTree
 from luckybot.plugin import Plugin
 from luckybot.plugin.decorators import command
-from luckybot.irc import Format
+from luckybot.protocols.irc import Format
 from gameserver.db import Server
 from sqlalchemy.orm import sessionmaker
 import re

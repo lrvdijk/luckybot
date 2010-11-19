@@ -11,7 +11,7 @@ commands, uptime, credits and more.
 
 from luckybot.plugin import Plugin, TYPE_COMMAND
 from luckybot.plugin.decorators import command, serverevent
-from luckybot.irc import Format
+from luckybot.protocols.irc import Format
 import os.path
 from datetime import datetime
 import time

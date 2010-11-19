@@ -11,7 +11,7 @@ changing the nickname etc.
 
 from luckybot.plugin import Plugin
 from luckybot.plugin.decorators import command
-from luckybot.irc import Format
+from luckybot.protocols.irc import Format
 import gc
 
 class BotActions(Plugin):
@@ -43,7 +43,7 @@ class BotActions(Plugin):
 				errors = True
 				continue
 
-			event.message.server.send(event.message.server.handler.protocol.join(channel))
+			event.server.send(event.server.protocol.join(channel))
 
 		if error:
 			event.user.notice(self.language('invalid_channels'))
@@ -81,7 +81,7 @@ class BotActions(Plugin):
 			return
 
 		for channel in channels:
-			event.message.server.send(event.message.server.handler.protocol.part(channel))
+			event.server.send(event.server.protocol.part(channel))
 
 	@command('exec')
 	def execute(self, event):
@@ -119,6 +119,4 @@ class BotActions(Plugin):
 			return
 
 		if event.message.bot_args:
-			event.message.server.send(
-				event.message.server.handler.protocol.set_nick(event.message.bot_args)
-			)
+			event.server.send(event.server.protocol.set_nick(event.message.bot_args))

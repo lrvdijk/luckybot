@@ -9,14 +9,14 @@ which you can call later to read it and display the latest entries.
 .. moduleauthor:: Lucas van Dijk <info@return1.net>
 """
 
-from xml.etree import ElementTree
 from luckybot.plugin import Plugin
 from luckybot.plugin.decorators import command
-from luckybot.irc import Format
+from luckybot.protocols.irc import Format
 from rssreader.db import Feed
 from sqlalchemy.orm import sessionmaker
 import urllib2 as urllib
 import re
+from xml.etree import ElementTree
 
 class RssException(Exception):
 	pass

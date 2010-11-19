@@ -10,14 +10,14 @@ This is our main bot controller, manages plugins, servers and more
 .. moduleauthor:: Lucas van Dijk <info@return1.net>
 """
 
-from ConfigParser import SafeConfigParser
 from luckybot import base_path, user_path, __version__
-from luckybot.irc.protocol import Message
-from luckybot.irc.protocol.server import Server
-from luckybot.ui import UI
-from luckybot.ui.console import ConsoleUI
-from luckybot.plugin import PluginManager
+from luckybot.processes import ProcessManager
+from luckybot.plugin import PluginManager, PluginProxy
 from luckybot.auth import Authentication
+from luckybot.signals import SignalEmitter
+from luckybot.connections.irc import IRCServerConnection
+
+from ConfigParser import SafeConfigParser
 from datetime import datetime
 import optparse
 import os
@@ -27,17 +27,20 @@ from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-class LuckyBot(object):
+class LuckyBot(SignalEmitter):
 	"""
 		Main application controller
 	"""
 
+	available_events = ('servers_loaded',)
 	bot = None
 
 	def __init__(self):
 		"""
 			Constructor, initializes some basic bot functionality
 		"""
+
+		SignalEmitter.__init__(self)
 
 		# setup option parser
 		self.parser = optparse.OptionParser(usage="%prog [options]",
@@ -47,7 +50,16 @@ class LuckyBot(object):
 			default="console")
 
 		options, args = self.parser.parse_args(sys.argv)
-		self.ui = UI.get(options.ui)()
+
+		temp = __import__('luckybot.ui.%s' % options.ui.lower())
+		ui_module = getattr(temp.ui, options.ui.lower())
+		if not hasattr(ui_module, '%sUI' % options.ui.title()):
+			print dir(ui_module)
+			raise ImportError, "UI type %s.%sUI doesn't exists" % (ui_module.__name__, options.ui.title())
+
+		ui_class = getattr(ui_module, '%sUI' % options.ui.title())
+		self.ui = ui_class(self)
+
 		self.start_time = None
 
 		# Load settings
@@ -107,7 +119,9 @@ class LuckyBot(object):
 				for option in self.settings.options(section):
 					config[option] = self.settings.get(section, option)
 
-				server = Server(self, **config)
+				config['prefix'] = self.settings.get('Bot', 'command_prefix')
+
+				server = IRCServerConnection(**config)
 				servers.append(server)
 
 		return servers
@@ -123,59 +137,35 @@ class LuckyBot(object):
 		self.plugins = PluginManager(self)
 		self.plugins.load_plugins(base_path('plugins'))
 
-		servers = self.get_servers()
+		self.servers = self.get_servers()
 
-		# Open connections
-		for server in servers:
-			server.connect()
+		# Add listeners
+		for server in self.servers:
+			server.add_listener('data_in', self.data_in)
 
-		num_alive = len(servers)
+		self.emit_signal('servers_loaded')
+
+		process_manager = ProcessManager(self.servers, self.settings.getboolean('Bot', 'keep_alive'))
+		num_alive = len(self.servers)
 
 		# Our main loop
-		while True:
+		while num_alive > 0:
 			try:
-				# Loop through each server and check if there's any data
-				for server in servers:
-					data = server.connection.recv()
+				num_alive = process_manager.check_processes()
 
-					if data:
-						self.ui.data_in(data.strip())
-						message = server.handler.protocol.parse_line(data)
-						message.server = server
-
-						# Check if bot command is called
-						if (message.type == Message.USER_MESSAGE and
-									message.command == 'PRIVMSG'):
-							cmd_prefix = self.settings.get('Bot', 'command_prefix')
-
-							# A message sent in PM/Channel
-							if message.message[0:len(cmd_prefix)] == cmd_prefix:
-								space_pos = message.message.find(' ', len(cmd_prefix))
-								if space_pos == -1:
-									space_pos = len(message.message)
-
-								command = message.message[len(cmd_prefix):space_pos]
-								message.bot_command = command
-								message.bot_args = message.message[space_pos+1:]
-
-						# pass it through our protocol handler
-						server.handler.on_line(message)
-
-						# Pass it through all plugins
-						self.plugins.check_event(message)
-
-					# Check which processes are alive and which are not
-					if not server.connection.is_alive:
-						if self.settings.getboolean('Bot', 'keep_alive'):
-							# Check once in the three minutes
-							if not hasattr(server, 'lastcheck') or (date_time.now() - server.last_check).seconds > 180:
-								server.last_check = datetime.now()
-								server.connect()
-								print "New process"
-						else:
-							num_alive -= 1
-
-				if num_alive == 0:
-					break
 			except KeyboardInterrupt:
 				break
+
+	def data_in(self, server, data):
+		"""
+			Event handler when a server receives data
+		"""
+
+		message = server.protocol.parse_line(data)
+
+		# Setup plugin proxy
+		proxy = PluginProxy(server, message, self)
+
+		# Pass it through all plugins
+		self.plugins.check_event(proxy)
+
