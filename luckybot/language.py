@@ -11,7 +11,7 @@ This is our main bot controller, manages plugins, servers and more
 """
 
 from ConfigParser import SafeConfigParser
-from luckybot.irc import Format
+from luckybot.protocols.irc import Format
 
 class Language(object):
 	"""
