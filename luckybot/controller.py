@@ -54,7 +54,6 @@ class LuckyBot(SignalEmitter):
 		temp = __import__('luckybot.ui.%s' % options.ui.lower())
 		ui_module = getattr(temp.ui, options.ui.lower())
 		if not hasattr(ui_module, '%sUI' % options.ui.title()):
-			print dir(ui_module)
 			raise ImportError, "UI type %s.%sUI doesn't exists" % (ui_module.__name__, options.ui.title())
 
 		ui_class = getattr(ui_module, '%sUI' % options.ui.title())
@@ -168,5 +167,12 @@ class LuckyBot(SignalEmitter):
 		proxy = PluginProxy(server, message, self)
 
 		# Pass it through all plugins
-		self.plugins.check_event(proxy)
+		try:
+			self.plugins.check_event(proxy)
+		except Exception as e:
+			import traceback
+			traceback.print_exc()
+			
+			server.send(server.protocol.pm(message.channel, "BOOM Error: %s" % (str(e))))
+			
 

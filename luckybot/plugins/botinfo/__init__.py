@@ -143,25 +143,28 @@ class BotInfo(Plugin):
 
 				for function in functions:
 					# Get some information from the docstring
-					doc_parts = function.__doc__.replace("!", self.bot.settings.get('Bot', 'command_prefix')).split("\n\n")
 					command_doc = "{c}{pfx}{command}{n} - {desc}"
+					if function.__doc__:
+						doc_parts = function.__doc__.replace("!", self.bot.settings.get('Bot', 'command_prefix')).split("\n\n")
 
-					desc = ""
-					for i, part in enumerate(doc_parts):
-						if i % 2:
-							desc += "{c}"
+						desc = ""
+						for i, part in enumerate(doc_parts):
+							if i % 2:
+								desc += "{c}"
 
-						part = " ".join([line.strip() for line in part.split("\n")])
-						desc += part.strip()
+							part = " ".join([line.strip() for line in part.split("\n")])
+							desc += part.strip()
 
-						if i % 2:
-							desc += "{n}"
+							if i % 2:
+								desc += "{n}"
 
-						desc += " - "
+							desc += " - "
 
-					desc = desc.format(c=Format.color(self.bot.settings.get('Bot', 'default_color')),
-						n=Format.normal()
-					)[0:-3]
+						desc = desc.format(c=Format.color(self.bot.settings.get('Bot', 'default_color')),
+							n=Format.normal()
+						)[0:-3]
+					else:
+						desc = ""
 
 					doc = command_doc.format(c=Format.color('darkred'),
 						b=Format.bold(),

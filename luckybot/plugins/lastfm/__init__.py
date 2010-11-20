@@ -151,6 +151,13 @@ class LastFMPlugin(Plugin):
 
 	@command('lastfm')
 	def lastfm(self, event):
+		"""
+			Displays lastfm information like last played, weekly top tracks
+			or top artists/tracks overall
+			
+			Example: !lastfm user [weekly|tracks|artists]
+		"""
+		
 		# Check which mode
 		args = event.message.bot_args.split()
 
