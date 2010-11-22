@@ -35,7 +35,7 @@ class Language(object):
 				  a language entry
 
 			.. seealso::
-				IRC Formatting: :class:`luckybot.irc.Format`
+				IRC Formatting: :class:`luckybot.protocols.irc.Format`
 		"""
 
 		self.language = language
