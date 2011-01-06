@@ -187,9 +187,9 @@ class MultiProcessSocket(BaseSocket):
 		"""
 
 		try:
-			return self.recv_queue.get()
+			return self.recv_queue.get(timeout=2)
 		except Empty:
-			return None
+			return ""
 
 	def close(self):
 		"""

@@ -15,16 +15,19 @@ import os
 import re
 import imp
 import inspect
+import gc
 from abc import ABCMeta
+from datetime import timedelta, datetime
+
 from luckybot.protocols.irc import Message
 from luckybot.language import Language
-import gc
 
 TYPE_COMMAND = 1
 TYPE_USER_EVENT = 2
 TYPE_SERVER_EVENT = 3
 TYPE_REGEXP_RAW = 4
 TYPE_REGEXP_MESSAGE = 5
+TYPE_TIMER = 6
 
 class PluginException(Exception):
 	pass
@@ -107,6 +110,7 @@ class PluginManager(object):
 		self.server_events = []
 		self.message_regexps = []
 		self.raw_regexps = []
+		self.timers = []
 
 	def load_plugin(self, dir, name):
 		"""
@@ -126,6 +130,7 @@ class PluginManager(object):
 		self.server_events.extend(plugin.get_functions_for_type(TYPE_SERVER_EVENT))
 		self.raw_regexps.extend(plugin.get_functions_for_type(TYPE_REGEXP_RAW))
 		self.message_regexps.extend(plugin.get_functions_for_type(TYPE_REGEXP_MESSAGE))
+		self.timers.extend(plugin.get_functions_for_type(TYPE_TIMER))
 		self.plugins[name] = plugin
 
 	def load_plugins(self, dir):
@@ -197,6 +202,10 @@ class PluginManager(object):
 		functions = self.plugins[name].get_functions_for_type(TYPE_REGEXP_RAW)
 		for function in functions:
 			self.raw_regexps.remove(function)
+
+		functions = self.plugins[name].get_functions_for_type(TYPE_TIMER)
+		for function in functions:
+			self.timers.remove(function)
 
 		if hasattr(self.plugins[name], 'destroy'):
 			self.plugins[name].destroy()
@@ -311,6 +320,20 @@ class PluginManager(object):
 					if match:
 						function(proxy, match)
 
+	def check_timers(self):
+		"""
+			Checks for plugin timers, and calls them again, after the given
+			amount of time
+		"""
+
+		for timer in self.timers:
+			if not timer.timer.last_call:
+				timer.timer.last_call = datetime.now()
+				timer()
+			else:
+				if (timer.timer.last_call + timedelta(seconds=timer.timer.seconds)) < datetime.now():
+					timer.timer.last_call = datetime.now()
+					timer()
 
 
 

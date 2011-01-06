@@ -10,5 +10,5 @@ You can find all plugin related classes in this module
 """
 
 from luckybot.plugin.managment import Plugin, PluginManager, PluginException, TYPE_COMMAND,\
-    TYPE_USER_EVENT, TYPE_SERVER_EVENT, TYPE_REGEXP_RAW, TYPE_REGEXP_MESSAGE
+    TYPE_USER_EVENT, TYPE_SERVER_EVENT, TYPE_REGEXP_RAW, TYPE_REGEXP_MESSAGE, TYPE_TIMER
 from luckybot.plugin.proxy import PluginProxy

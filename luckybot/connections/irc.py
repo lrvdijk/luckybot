@@ -79,8 +79,10 @@ class IRCServerConnection(BaseConnection):
 		"""
 
 		data = self.connection.recv()
-		self.buffer += data
-		self.check_buffer()
+
+		if data:
+			self.buffer += data
+			self.check_buffer()
 
 		return data
 

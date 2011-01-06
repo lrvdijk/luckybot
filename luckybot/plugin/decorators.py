@@ -12,7 +12,9 @@ for a specifick IRC event
 """
 
 from luckybot.plugin import TYPE_COMMAND, TYPE_USER_EVENT, TYPE_SERVER_EVENT, \
-	TYPE_REGEXP_RAW, TYPE_REGEXP_MESSAGE
+	TYPE_REGEXP_RAW, TYPE_REGEXP_MESSAGE, TYPE_TIMER
+
+from datetime import datetime
 
 def command(command):
 	"""
@@ -99,7 +101,7 @@ def regexpmessage(pattern, modifiers=0):
 		against the message sent by the user.
 
 		.. seealso::
-			Decorator :function:`regexpmessage`
+			Decorator :function:`regexpraw`
 
 		:Args:
 			* pattern (string): The regexp pattern
@@ -110,6 +112,33 @@ def regexpmessage(pattern, modifiers=0):
 		func.handler_type = TYPE_REGEXP_MESSAGE
 		func.pattern = pattern
 		func.modifiers = modifiers
+
+		return func
+
+	return function_modifier
+
+class TimerInfo(object):
+	"""
+		A function which will be called periodically
+	"""
+
+	def __init__(self, seconds, last_call=None):
+		self.seconds = seconds
+		self.last_call = last_call
+
+def timer(seconds):
+	"""
+		Decorator to periodically call a function, note that functions
+		using this decorator won't receive a server argument, so they
+		need to know to which server to send data.
+
+		:Args:
+			* seconds (int): How much seconds between 2 calls
+	"""
+
+	def function_modifier(func):
+		func.timer = TimerInfo(seconds, datetime.now())
+		func.handler_type = TYPE_TIMER
 
 		return func
 

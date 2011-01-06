@@ -126,6 +126,18 @@ class LuckyBot(SignalEmitter):
 
 		return servers
 
+	def get_server(self, hostname):
+		"""
+			Searches for a server with the given hostname, and returns
+			it if it exists.
+		"""
+
+		for server in self.servers:
+			if server.info['hostname'] == hostname:
+				return server
+
+		return None
+
 	def start(self):
 		"""
 			Creates for each server a subprocess, and runs the bot
@@ -134,7 +146,13 @@ class LuckyBot(SignalEmitter):
 		self.start_time = datetime.now()
 
 		# Load plugins
-		self.plugins = PluginManager(self)
+		# Check first for disabled plugins
+		disabled = []
+		for plugin in self.settings.options('Disabled'):
+			if self.settings.getboolean('Disabled', plugin):
+				disabled.append(plugin)
+
+		self.plugins = PluginManager(self, disabled)
 		self.plugins.load_plugins(base_path('plugins'))
 
 		self.servers = self.get_servers()
@@ -152,7 +170,7 @@ class LuckyBot(SignalEmitter):
 		while num_alive > 0:
 			try:
 				num_alive = process_manager.check_processes()
-
+				self.plugins.check_timers()
 			except KeyboardInterrupt:
 				break
 
@@ -172,7 +190,7 @@ class LuckyBot(SignalEmitter):
 		except Exception as e:
 			import traceback
 			traceback.print_exc()
-			
+
 			server.send(server.protocol.pm(message.channel, "BOOM Error: %s" % (str(e))))
-			
+
 

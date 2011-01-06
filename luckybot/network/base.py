@@ -1,11 +1,11 @@
 """
-:mod:`luckybot.connections` - Socket helper classes
+:mod:`luckybot.network` - Socket helper classes
 ===================================================
 
 This module contains some basic socket abstaction classes, to make
 sockets more flexible.
 
-.. module:: luckybot.connections
+.. module:: luckybot.network
    :synopsis: Socket helper classes
 
 .. moduleauthor:: Lucas van Dijk <info@return1.net>
