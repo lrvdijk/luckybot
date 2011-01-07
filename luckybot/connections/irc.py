@@ -36,16 +36,29 @@ class IRCServerConnection(BaseConnection):
 		if 'hostname' not in kwargs:
 			raise KeyError, "No hostname specified for the server"
 
-		connection_class = kwargs['connection_class'] if 'connection_class' in kwargs else MultiProcessSocket
+		self.connection_class = kwargs['connection_class'] if 'connection_class' in kwargs else MultiProcessSocket
 
-		self.connection = connection_class(socket.SOCK_STREAM)
+		self.connection = self.connection_class(socket.SOCK_STREAM)
 		self.protocol = IRCProtocol(self)
 		self.buffer = ""
+		self.first_connect = False
 
 	def connect(self):
 		"""
 			Sets up a connection for this server, and connects to it
 		"""
+		
+		if self.first_connect:
+			try:
+				self.close()
+			except socket.error:
+				import traceback 
+				traceback.print_exc()
+			
+			del self.connection
+			self.connection = self.connection_class(socket.SOCK_STREAM)
+		else:
+			self.first_connect = True
 
 		# Default values
 		if 'port' in self.info:
@@ -92,8 +105,10 @@ class IRCServerConnection(BaseConnection):
 			server
 		"""
 
+		result = self.connection.close()
+		
 		self.emit_signal('closed')
-		return self.connection.close()
+		return result
 
 	def check_buffer(self):
 		"""

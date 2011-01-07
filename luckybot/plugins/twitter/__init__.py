@@ -287,21 +287,23 @@ class TwitterPlugin(Plugin):
 
 					if timestamp > last_check:
 						server = self.bot.get_server(notification.server)
-						if notification.type == 'search':
-							server.send(server.protocol.pm(notification.channel, self.language('new_tweet_search',
-								text=tweets[0]['text'],
-								date=timestamp.strftime('%a, %d %b %Y %H:%M:%S'),
-								query=unquote_plus(notification.name)
-							)))
-						else:
-							server.send(server.protocol.pm(notification.channel, self.language('new_tweet_user',
-								text=tweets[0]['text'],
-								date=timestamp.strftime('%a, %d %b %Y %H:%M:%S'),
-								user=unquote_plus(notification.name)
-							)))
+						
+						if server and server.connection.is_alive:
+							if notification.type == 'search':
+								server.send(server.protocol.pm(notification.channel, self.language('new_tweet_search',
+									text=tweets[0]['text'],
+									date=timestamp.strftime('%a, %d %b %Y %H:%M:%S'),
+									query=unquote_plus(notification.name)
+								)))
+							else:
+								server.send(server.protocol.pm(notification.channel, self.language('new_tweet_user',
+									text=tweets[0]['text'],
+									date=timestamp.strftime('%a, %d %b %Y %H:%M:%S'),
+									user=unquote_plus(notification.name)
+								)))
 
-						notification.last_check = datetime.now()
-						self.bot.db_session.commit()
+							notification.last_check = datetime.now()
+							self.bot.db_session.commit()
 		except Exception as e:
 			import traceback
 			traceback.print_exc()

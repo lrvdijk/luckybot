@@ -97,7 +97,8 @@ class SocketProcess(Process):
 			data = self.connection.recv(1024)
 		except socket.error as e:
 			# Connection closed
-			print e
+			import traceback
+			traceback.print_exc()
 			raise EOFError
 
 		if data == "":
@@ -113,7 +114,7 @@ class SocketProcess(Process):
 
 		while True:
 			try:
-				data = self.send_queue.get(False)
+				data = self.send_queue.get(timeout=2)
 				self.connection.send(data)
 
 				if data.startswith("QUIT"):
@@ -138,7 +139,7 @@ class SocketProcess(Process):
 			except KeyboardInterrupt:
 				break
 			except EOFError:
-				self.recv_queue.put("QUIT")
+				self.recv_queue.put("QUIT\n")
 				break
 
 		try:

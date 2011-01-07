@@ -44,9 +44,16 @@ class ProcessManager(object):
 			alive = server.connection.is_alive
 
 			if alive:
+				print "Receiving..",
 				data = server.recv()
+				print "done"
 
 				if data.startswith("QUIT"):
+					try:
+						server.close()
+					except socket.error:
+						pass
+					
 					alive = False
 				else:
 					num_alive += 1
