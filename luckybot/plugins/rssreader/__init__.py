@@ -52,7 +52,7 @@ class RssFeed(object):
 
 		return tree.getroot()
 
-	def read(self, max=5):
+	def read(self, max=3):
 		"""
 			Reads the RSS feed
 
@@ -172,7 +172,7 @@ class Rss(Plugin):
 			if event.message.bot_command == 'last':
 				rss.read(1)
 			else:
-				rss.read(5)
+				rss.read(3)
 
 			event.channel.pm(self.language('rss_title', title=rss.title))
 			for item in rss:
