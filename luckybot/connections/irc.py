@@ -15,6 +15,7 @@ from luckybot.protocols import IRCProtocol
 from luckybot.connections import BaseConnection
 from luckybot.network import MultiProcessSocket
 import socket
+from datetime import datetime
 
 class IRCServerConnection(BaseConnection):
 	"""

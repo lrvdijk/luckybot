@@ -155,8 +155,9 @@ class TwitterPlugin(Plugin):
 				for i in range(2):
 					tweet = tweets[i]
 					# Parse date
-					timestamp = parse(tweet['created_at'])
-					event.channel.pm(self.language('tweet', text=tweet['text'], date=timestamp.strftime('%a, %d %B %Y %H:%I:%S')))
+					timestamp = parse(tweet['created_at']).replace(tzinfo=gettz('Europe/London')).astimezone(gettz())
+					print timestamp
+					event.channel.pm(self.language('tweet', text=tweet['text'], date=timestamp.strftime('%a, %d %B %Y %H:%M:%S')))
 			else:
 				event.channel.pm(self.language('no_tweets_found'))
 
@@ -276,18 +277,17 @@ class TwitterPlugin(Plugin):
 				if tweets:
 					# Only send latest tweet
 					# parse date
-
-					print tweets[0]['created_at']
-					timestamp = parse(tweets[0]['created_at'])
+					timestamp = parse(tweets[0]['created_at']).replace(tzinfo=gettz('Europe/London'))
 
 					if notification.last_check:
-						last_check = notification.last_check.replace(tzinfo=gettz())
+						last_check = notification.last_check.replace(tzinfo=gettz('Europe/London'))
 					else:
-						last_check = datetime.now(gettz()) - timedelta(minutes=10)
+						last_check = datetime.now(gettz('Europe/London')) - timedelta(minutes=10)
 
 					if timestamp > last_check:
 						server = self.bot.get_server(notification.server)
-						
+						timestamp = timestamp.astimezone(gettz())
+
 						if server and server.connection.is_alive:
 							if notification.type == 'search':
 								server.send(server.protocol.pm(notification.channel, self.language('new_tweet_search',
