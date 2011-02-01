@@ -94,11 +94,13 @@ class SocketProcess(Process):
 		"""
 
 		try:
-			data = self.connection.recv(1024)
+			data = self.connection.recv(4096)
 		except socket.error as e:
 			# Connection closed
+			print "No data, print exception"
 			import traceback
 			traceback.print_exc()
+
 			raise EOFError
 
 		if data == "":
@@ -139,8 +141,13 @@ class SocketProcess(Process):
 			except KeyboardInterrupt:
 				break
 			except EOFError:
+				"Caught EOFError"
+				import traceback
+				traceback.print_exc()
 				self.recv_queue.put("QUIT\n")
-				break
+
+				# Quit process
+				return 0
 
 		try:
 			self.connection.close()
@@ -188,7 +195,7 @@ class MultiProcessSocket(BaseSocket):
 		"""
 
 		try:
-			return self.recv_queue.get(timeout=2)
+			return self.recv_queue.get(timeout=0.3)
 		except Empty:
 			return ""
 

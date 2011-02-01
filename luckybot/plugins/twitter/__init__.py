@@ -157,7 +157,7 @@ class TwitterPlugin(Plugin):
 					# Parse date
 					timestamp = parse(tweet['created_at']).replace(tzinfo=gettz('Europe/London')).astimezone(gettz())
 					print timestamp
-					event.channel.pm(self.language('tweet', text=tweet['text'], date=timestamp.strftime('%a, %d %B %Y %H:%M:%S')))
+					event.channel.pm(self.language('tweet', text=tweet['text'].encode('utf-8'), date=timestamp.strftime('%a, %d %B %Y %H:%M:%S')))
 			else:
 				event.channel.pm(self.language('no_tweets_found'))
 
@@ -291,13 +291,13 @@ class TwitterPlugin(Plugin):
 						if server and server.connection.is_alive:
 							if notification.type == 'search':
 								server.send(server.protocol.pm(notification.channel, self.language('new_tweet_search',
-									text=tweets[0]['text'],
+									text=tweets[0]['text'].encode('utf-8'),
 									date=timestamp.strftime('%a, %d %b %Y %H:%M:%S'),
 									query=unquote_plus(notification.name)
 								)))
 							else:
 								server.send(server.protocol.pm(notification.channel, self.language('new_tweet_user',
-									text=tweets[0]['text'],
+									text=tweets[0]['text'].encode('utf-8'),
 									date=timestamp.strftime('%a, %d %b %Y %H:%M:%S'),
 									user=unquote_plus(notification.name)
 								)))
