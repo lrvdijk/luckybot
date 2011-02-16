@@ -147,14 +147,8 @@ class SocketProcess(Process):
 				result = self.poll(self.check_for_send_queue.value, 0.1)
 			except KeyboardInterrupt:
 				break
-			except EOFError:
-				"Caught EOFError"
-				import traceback
-				traceback.print_exc()
-				self.recv_queue.put("QUIT\n")
 
-				# Quit process
-				return 0
+		self.recv_queue.put("QUIT\n")
 
 		try:
 			self.connection.close()
