@@ -78,14 +78,16 @@ class SocketProcess(Process):
 
 			raise
 
+		read_success = True
+		write_success = True
+
 		if readables:
-			self.read_data()
+			read_success = self.read_data()
 
 		if writeables:
-			self.check_queue()
+			write_success = self.check_queue()
 
-		if errors:
-			raise EOFError
+		return read_success and write_success and not errors
 
 
 	def read_data(self):
@@ -101,13 +103,14 @@ class SocketProcess(Process):
 			import traceback
 			traceback.print_exc()
 
-			raise EOFError
+			return False
 
 		if data == "":
 			# Connection closed
-			raise EOFError
+			return False
 
 		self.recv_queue.put(data)
+		return True
 
 	def check_queue(self):
 		"""
@@ -120,10 +123,12 @@ class SocketProcess(Process):
 				self.connection.send(data)
 
 				if data.startswith("QUIT"):
-					raise EOFError
+					return False
 			except Empty:
 				self.check_for_send_queue.value = False
 				break
+
+		return True
 
 	def run(self):
 		"""
@@ -135,9 +140,11 @@ class SocketProcess(Process):
 		self.connection.open(self.addr)
 		self.connection.setblocking(0)
 
-		while True:
+		result = True
+
+		while result:
 			try:
-				self.poll(self.check_for_send_queue.value, 0.1)
+				result = self.poll(self.check_for_send_queue.value, 0.1)
 			except KeyboardInterrupt:
 				break
 			except EOFError:
