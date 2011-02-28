@@ -155,6 +155,10 @@ class SocketProcess(Process):
 		except:
 			pass
 
+		print "End of Process"
+
+		self.terminate()
+
 		return 0
 
 class MultiProcessSocket(BaseSocket):
