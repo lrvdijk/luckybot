@@ -152,12 +152,11 @@ class SocketProcess(Process):
 
 		try:
 			self.connection.close()
+			self.terminate()
 		except:
 			pass
 
 		print "End of Process"
-
-		self.terminate()
 
 		return 0
 
