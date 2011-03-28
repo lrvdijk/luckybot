@@ -54,17 +54,19 @@ class BotActions(Plugin):
 			info = {
 				'hostname': hostname,
 				'port': port,
-				'nickname': self.server.info['nickname'],
+				'nickname': event.server.info['nickname'],
 				'channels': '',
-				'password': ''
+				'password': '',
+				'prefix': event.server.info['prefix']
 			}
 		elif len(args) == 2:
 			info = {
 				'hostname': hostname,
 				'port': port,
-				'nickname': self.server.info['nickname'],
+				'nickname': event.server.info['nickname'],
 				'channels': args[1],
-				'password': ''
+				'password': '',
+				'prefix': event.server.info['prefix']
 			}
 		elif len(args) == 3:
 			info = {
@@ -72,7 +74,8 @@ class BotActions(Plugin):
 				'port': port,
 				'nickname': args[2],
 				'channels': args[1],
-				'password': ''
+				'password': '',
+				'prefix': event.server.info['prefix']
 			}
 		else:
 			info = {
@@ -80,7 +83,8 @@ class BotActions(Plugin):
 				'port': port,
 				'nickname': args[2],
 				'channels': args[1],
-				'password': args[3]
+				'password': args[3],
+				'prefix': event.server.info['prefix']
 			}
 
 		server = IRCServerConnection(**info)
